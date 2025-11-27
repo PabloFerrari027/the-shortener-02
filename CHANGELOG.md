@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v0.2.0...v0.3.0) (2025-11-27)
+
+
+### 🐛 Correções
+
+* remove the package manager cache ([5a15a0c](https://github.com/PabloFerrari027/the-shortener-02/commit/5a15a0c7a15fd9a9a20b05a46ce257c7efb1f8f1))
+
+
+### ✨ Novidades
+
+* add Docker Compose configurations for prod and test environments ([9e8c38e](https://github.com/PabloFerrari027/the-shortener-02/commit/9e8c38e10c8157dad125607b4e44912e5cf1e20c))
+
 ## [0.2.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v0.1.0...v0.2.0) (2025-11-27)
 
 
