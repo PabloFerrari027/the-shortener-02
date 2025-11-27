@@ -33,4 +33,6 @@ exec(
   '✨ Setting up Commitizen...',
 );
 
+exec('npm run docker:compose', '➤ Creating containers...');
+
 log('\n✅ Setup completed successfully!', colors.green);

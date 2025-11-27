@@ -26,7 +26,10 @@
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
-    "release:patch": "standard-version --release-as patch"
+    "release:patch": "standard-version --release-as patch",
+    "docker:compose:prod": "docker compose --project-name the-shortener-prod -f .docker/docker-compose.prod.yml up -d",
+    "docker:compose:test": "docker compose --project-name the-shortener-test -f .docker/docker-compose.test.yml up -d",
+    "docker:compose": "npm run docker:compose:prod && npm run docker:compose:test"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
