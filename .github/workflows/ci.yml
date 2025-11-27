@@ -25,6 +25,12 @@ jobs:
       - name: Run lint
         run: npm run lint --if-present
 
+      - name: Run Docker compose
+        run: npm run docker:compose --if-present
+
+      - name: Run Migrations
+        run: npm run migration:run --if-present
+
       - name: Run tests
         run: npm test --if-present
 
