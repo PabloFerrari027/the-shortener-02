@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v0.3.0...v1.0.0) (2025-11-28)
+
+
+### 🔧 Manutenção
+
+* remove setup script ([5f315f2](https://github.com/PabloFerrari027/the-shortener-02/commit/5f315f20040dcc729a54cd2e6fa3f1daaf95217d))
+* setup project structure and development environment ([59889ca](https://github.com/PabloFerrari027/the-shortener-02/commit/59889caac3575c138a679bf72a762366231cd808))
+
+
+### 💄 Estilo
+
+* fixes lint ([3346fe1](https://github.com/PabloFerrari027/the-shortener-02/commit/3346fe14fa84eff632ffab2b32b14173b81dafca))
+
+
+### ♻️ Refatoração
+
+* configure main application module and bootstrap with Swagger ([fa3de6a](https://github.com/PabloFerrari027/the-shortener-02/commit/fa3de6af3f97ad558df9892140c95cb54547b78e))
+* replace hardcoded credentials with environment variables in docker compose files ([e992b87](https://github.com/PabloFerrari027/the-shortener-02/commit/e992b873710fa31de326d00c4726ed8b284990b8))
+
+
+### ✨ Novidades
+
+* add automatic environment files creation to setup script ([0e37d00](https://github.com/PabloFerrari027/the-shortener-02/commit/0e37d00b422d5f945572d9b337e67456e3e24476))
+* add domain errors for ShortUrl module ([46f213f](https://github.com/PabloFerrari027/the-shortener-02/commit/46f213fefebd07deda7d219ab1ae3e633e6fd424))
+* add environment variables example file ([97ac71e](https://github.com/PabloFerrari027/the-shortener-02/commit/97ac71e74e705110ac182cbe61bbbb34437ef0de))
+* add migration to create short_urls table with indexes ([30b4157](https://github.com/PabloFerrari027/the-shortener-02/commit/30b41576c73aa5a80742f2fdd68cabd794fa873a))
+* add PostgreSQL database configuration and migration system ([d60d4dc](https://github.com/PabloFerrari027/the-shortener-02/commit/d60d4dca978f8263e3d734cae83020457fcc83bb))
+* add REST API controller for short URL operations ([9f71650](https://github.com/PabloFerrari027/the-shortener-02/commit/9f716506841c1dfb469b56d3e30684e5c847087f))
+* add shared utilities, types and common classes ([4b7d6d0](https://github.com/PabloFerrari027/the-shortener-02/commit/4b7d6d036ffd9c48654cc6c92ce7d7afd9228e32))
+* add ShortUrl domain entity with validation and serialization ([302e73f](https://github.com/PabloFerrari027/the-shortener-02/commit/302e73f6cf25880d844db5c76d0266cb4ce71f71))
+* add ShortUrl repository interface ([80ba4d0](https://github.com/PabloFerrari027/the-shortener-02/commit/80ba4d04c18b1a6bed8cf4f850e95319fdbfd5a5))
+* configure short URL module with dependency injection ([19c74c7](https://github.com/PabloFerrari027/the-shortener-02/commit/19c74c7ce36aba8888151c0bf5b0193f15236426))
+* implement global exception handler for HTTP errors ([6a1d259](https://github.com/PabloFerrari027/the-shortener-02/commit/6a1d259c165b4fc56d041bd6ed9886641ced5a33))
+* implement PostgreSQL repository for short URLs ([33c736e](https://github.com/PabloFerrari027/the-shortener-02/commit/33c736e293eb7be4797931d6d6c655d714b2756e))
+* implement presentation layer for short URL responses ([9560184](https://github.com/PabloFerrari027/the-shortener-02/commit/9560184e4dfe361e476241a2dd37830f276b81d2))
+* implement services for short URL management ([426156f](https://github.com/PabloFerrari027/the-shortener-02/commit/426156fc588889935a7d2a5822e940818c781f36))
+* implement update and delete endpoints for short urls ([5a1b431](https://github.com/PabloFerrari027/the-shortener-02/commit/5a1b431d7e9b47dd8dce211cc003f7322d48723a))
+
+
+### ✅ Testes
+
+* add test case for list endpoint default parameters ([8a2f5d7](https://github.com/PabloFerrari027/the-shortener-02/commit/8a2f5d7548c09472ba643289ba06d4cdaac4039b))
+* add tests for update and delete short url endpoints ([e4467a2](https://github.com/PabloFerrari027/the-shortener-02/commit/e4467a2cb8b5facd511aef0b0083ff612c29490e))
+
 ## [0.3.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v0.2.0...v0.3.0) (2025-11-27)
 
 
