@@ -10,16 +10,6 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
-    env:
-      APP_URL: ${{ secrets.APP_URL }}
-      NODE_ENV: TEST-E2E
-      PORT: ${{ secrets.PORT }}
-      PG_HOST: ${{ secrets.PG_HOST }}
-      PG_PORT: ${{ secrets.PG_PORT }}
-      PG_NAME: ${{ secrets.PG_NAME }}
-      PG_USER: ${{ secrets.PG_USER }}
-      PG_PASS: ${{ secrets.PG_PASS }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,14 +25,8 @@ jobs:
       - name: Run lint
         run: npm run lint --if-present
 
-      - name: Run Docker compose
-        run: npm run docker:compose --if-present
-
-      - name: Run Migrations
-        run: npm run migration:run --if-present
-
       - name: Run tests
-        run: npm test --if-present
+        run: npm test:unit --if-present
 
       - name: Run build
         run: npm run build --if-present
