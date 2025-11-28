@@ -5,6 +5,8 @@ import { ShortUrlController } from './short-url.controller';
 import { CreateShortUrlService } from './services/create-short-url.service';
 import { ListShortnerUrlsService } from './services/list-shortner-urls.service';
 import { HandleShortUrlService } from './services/handle-short-url.service';
+import { UpdateShortUrlService } from './services/update-short-url.service';
+import { DeleteShortUrlService } from './services/delete-short-url.service';
 import { ShortUrl } from '../domain/entities/short-url.entity';
 import { ShortUrlPresentation } from './presentation/short-url.presentation';
 
@@ -13,6 +15,8 @@ describe('ShortUrlController', () => {
   let createShortUrlService: jest.Mocked<CreateShortUrlService>;
   let listShortnerUrlsService: jest.Mocked<ListShortnerUrlsService>;
   let handleShortUrlService: jest.Mocked<HandleShortUrlService>;
+  let updateShortUrlService: jest.Mocked<UpdateShortUrlService>;
+  let deleteShortUrlService: jest.Mocked<DeleteShortUrlService>;
 
   const mockCreateShortUrlService = {
     execute: jest.fn(),
@@ -23,6 +27,14 @@ describe('ShortUrlController', () => {
   };
 
   const mockHandleShortUrlService = {
+    execute: jest.fn(),
+  };
+
+  const mockUpdateShortUrlService = {
+    execute: jest.fn(),
+  };
+
+  const mockDeleteShortUrlService = {
     execute: jest.fn(),
   };
 
@@ -42,6 +54,14 @@ describe('ShortUrlController', () => {
           provide: HandleShortUrlService,
           useValue: mockHandleShortUrlService,
         },
+        {
+          provide: UpdateShortUrlService,
+          useValue: mockUpdateShortUrlService,
+        },
+        {
+          provide: DeleteShortUrlService,
+          useValue: mockDeleteShortUrlService,
+        },
       ],
     }).compile();
 
@@ -49,6 +69,8 @@ describe('ShortUrlController', () => {
     createShortUrlService = module.get(CreateShortUrlService);
     listShortnerUrlsService = module.get(ListShortnerUrlsService);
     handleShortUrlService = module.get(HandleShortUrlService);
+    updateShortUrlService = module.get(UpdateShortUrlService);
+    deleteShortUrlService = module.get(DeleteShortUrlService);
 
     jest.clearAllMocks();
   });
@@ -141,6 +163,26 @@ describe('ShortUrlController', () => {
       });
       expect(presentationSpy).toHaveBeenCalledWith(mockShortUrls, 5, 1);
       expect(result).toBeDefined();
+    });
+
+    it('should use default values when params are not provided', async () => {
+      const params = {};
+
+      const mockServiceResponse = {
+        data: [],
+        totalPages: 1,
+        currentPage: 1,
+      };
+
+      listShortnerUrlsService.execute.mockResolvedValue(mockServiceResponse);
+
+      await controller.list(params);
+
+      expect(listShortnerUrlsService.execute).toHaveBeenCalledWith({
+        page: 1,
+        order: undefined,
+        orderBy: 'createdAt',
+      });
     });
 
     it('should handle order_by updated_at', async () => {
@@ -260,6 +302,158 @@ describe('ShortUrlController', () => {
 
       const callArgs = listShortnerUrlsService.execute.mock.calls[0][0];
       expect(callArgs.orderBy).toBe('updatedAt');
+    });
+  });
+
+  describe('update', () => {
+    it('should update a short url and return formatted output', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      const body = { url: 'https://example.com/updated-url' };
+      const mockShortUrl = ShortUrl.create({
+        hash: 'abc123',
+        url: body.url,
+      });
+
+      const mockServiceResponse = { shortUrl: mockShortUrl };
+      updateShortUrlService.execute.mockResolvedValue(mockServiceResponse);
+
+      const presentationSpy = jest.spyOn(ShortUrlPresentation, 'toController');
+
+      const result = await controller.update(params, body);
+
+      expect(updateShortUrlService.execute).toHaveBeenCalledTimes(1);
+      expect(updateShortUrlService.execute).toHaveBeenCalledWith({
+        id: params.id,
+        url: body.url,
+      });
+      expect(presentationSpy).toHaveBeenCalledWith(mockShortUrl);
+      expect(result).toBeDefined();
+    });
+
+    it('should handle different ids and urls', async () => {
+      const params = { id: 'a1b2c3d4-5678-90ab-cdef-123456789012' };
+      const body = { url: 'https://different.com/path' };
+      const mockShortUrl = ShortUrl.create({
+        hash: 'xyz789',
+        url: body.url,
+      });
+
+      updateShortUrlService.execute.mockResolvedValue({
+        shortUrl: mockShortUrl,
+      });
+
+      const result = await controller.update(params, body);
+
+      expect(updateShortUrlService.execute).toHaveBeenCalledWith({
+        id: params.id,
+        url: body.url,
+      });
+      expect(result).toBeDefined();
+    });
+
+    it('should propagate service errors', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      const body = { url: 'https://example.com' };
+      const error = new Error('Not found');
+      updateShortUrlService.execute.mockRejectedValue(error);
+
+      await expect(controller.update(params, body)).rejects.toThrow(
+        'Not found',
+      );
+    });
+
+    it('should handle urls with query parameters', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      const body = {
+        url: 'https://example.com/path?param1=value1&param2=value2',
+      };
+      const mockShortUrl = ShortUrl.create({
+        hash: 'abc123',
+        url: body.url,
+      });
+
+      updateShortUrlService.execute.mockResolvedValue({
+        shortUrl: mockShortUrl,
+      });
+
+      await controller.update(params, body);
+
+      expect(updateShortUrlService.execute).toHaveBeenCalledWith({
+        id: params.id,
+        url: body.url,
+      });
+    });
+
+    it('should handle urls with fragments', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      const body = { url: 'https://example.com/page#section' };
+      const mockShortUrl = ShortUrl.create({
+        hash: 'abc123',
+        url: body.url,
+      });
+
+      updateShortUrlService.execute.mockResolvedValue({
+        shortUrl: mockShortUrl,
+      });
+
+      await controller.update(params, body);
+
+      expect(updateShortUrlService.execute).toHaveBeenCalledWith({
+        id: params.id,
+        url: body.url,
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete a short url', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      deleteShortUrlService.execute.mockResolvedValue(undefined);
+
+      await controller.delete(params);
+
+      expect(deleteShortUrlService.execute).toHaveBeenCalledTimes(1);
+      expect(deleteShortUrlService.execute).toHaveBeenCalledWith({
+        id: params.id,
+      });
+    });
+
+    it('should handle different ids', async () => {
+      const params = { id: 'a1b2c3d4-5678-90ab-cdef-123456789012' };
+      deleteShortUrlService.execute.mockResolvedValue(undefined);
+
+      await controller.delete(params);
+
+      expect(deleteShortUrlService.execute).toHaveBeenCalledWith({
+        id: params.id,
+      });
+    });
+
+    it('should propagate service errors', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      const error = new Error('Not found');
+      deleteShortUrlService.execute.mockRejectedValue(error);
+
+      await expect(controller.delete(params)).rejects.toThrow('Not found');
+    });
+
+    it('should not return any value', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      deleteShortUrlService.execute.mockResolvedValue(undefined);
+
+      const result = await controller.delete(params);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle database errors', async () => {
+      const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
+      const error = new Error('Database connection failed');
+      deleteShortUrlService.execute.mockRejectedValue(error);
+
+      await expect(controller.delete(params)).rejects.toThrow(
+        'Database connection failed',
+      );
     });
   });
 
