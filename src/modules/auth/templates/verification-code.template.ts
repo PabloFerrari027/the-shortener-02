@@ -18,8 +18,6 @@ interface Input {
 @Injectable()
 export class VerificationCodeTemplate {
   generate(input: Input): Output {
-    console.log({ input });
-
     switch (input.language) {
       case Language['PT-BR']: {
         return {

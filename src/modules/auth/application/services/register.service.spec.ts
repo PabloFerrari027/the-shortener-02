@@ -28,12 +28,6 @@ describe('RegisterService', () => {
     pullEvents: jest.fn().mockReturnValue([]),
   } as unknown as User;
 
-  const mockSession: Session = {
-    id: 'session-123',
-    userId: 'user-123',
-    pullEvents: jest.fn().mockReturnValue([]),
-  } as unknown as Session;
-
   beforeEach(async () => {
     const usersRepositoryMock = {
       create: jest.fn(),
@@ -108,13 +102,18 @@ describe('RegisterService', () => {
       const mockSessionId = 'generated-session-id';
       const mockHashedPassword = 'hashed-password';
 
+      const mockSession: Session = {
+        id: mockSessionId,
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
+
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue(mockHashedPassword);
       encodingPort.encode
         .mockResolvedValueOnce(mockAccessToken)
         .mockResolvedValueOnce(mockRefreshToken);
 
-      jest.spyOn(Session, 'generateId').mockReturnValue(mockSessionId);
       jest.spyOn(User, 'create').mockReturnValue(mockUser);
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest
@@ -143,7 +142,6 @@ describe('RegisterService', () => {
         password: { value: mockHashedPassword },
         role: UserRole.CLINET,
       });
-      expect(Session.generateId).toHaveBeenCalled();
       expect(Session.create).toHaveBeenCalledWith({ userId: mockUser.id });
       expect(encodingPort.encode).toHaveBeenCalledTimes(2);
       expect(usersRepository.create).toHaveBeenCalledWith(mockUser);
@@ -180,6 +178,11 @@ describe('RegisterService', () => {
 
     it('should hash the password before creating user', async () => {
       const mockHashedPassword = 'super-secure-hashed-password';
+      const mockSession: Session = {
+        id: 'session-123',
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
 
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue(mockHashedPassword);
@@ -187,7 +190,6 @@ describe('RegisterService', () => {
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
 
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(User, 'create').mockReturnValue(mockUser);
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest
@@ -221,13 +223,18 @@ describe('RegisterService', () => {
       const mockRefreshToken = 'refresh-token';
       const mockSessionId = 'session-id';
 
+      const mockSession: Session = {
+        id: mockSessionId,
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
+
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue('hashed-password');
       encodingPort.encode
         .mockResolvedValueOnce(mockAccessToken)
         .mockResolvedValueOnce(mockRefreshToken);
 
-      jest.spyOn(Session, 'generateId').mockReturnValue(mockSessionId);
       jest.spyOn(User, 'create').mockReturnValue(mockUser);
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest
@@ -274,6 +281,12 @@ describe('RegisterService', () => {
     });
 
     it('should create user with CLINET role', async () => {
+      const mockSession: Session = {
+        id: 'session-123',
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
+
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue('hashed-password');
       encodingPort.encode
@@ -283,7 +296,6 @@ describe('RegisterService', () => {
       const userCreateSpy = jest
         .spyOn(User, 'create')
         .mockReturnValue(mockUser);
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest
         .spyOn(Name, 'create')
@@ -315,7 +327,8 @@ describe('RegisterService', () => {
       } as unknown as User;
 
       const mockSessionWithEvents: Session = {
-        ...mockSession,
+        id: 'session-123',
+        userId: mockUser.id,
         pullEvents: jest.fn().mockReturnValue(sessionEvents),
       } as unknown as Session;
 
@@ -325,7 +338,6 @@ describe('RegisterService', () => {
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
 
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(User, 'create').mockReturnValue(mockUserWithEvents);
       jest.spyOn(Session, 'create').mockReturnValue(mockSessionWithEvents);
       jest
@@ -353,6 +365,11 @@ describe('RegisterService', () => {
 
     it('should call repositories in correct order', async () => {
       const callOrder: string[] = [];
+      const mockSession: Session = {
+        id: 'session-123',
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
 
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue('hashed-password');
@@ -368,7 +385,6 @@ describe('RegisterService', () => {
         callOrder.push('sessionsRepository.create');
       });
 
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(User, 'create').mockReturnValue(mockUser);
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest
@@ -391,6 +407,12 @@ describe('RegisterService', () => {
     });
 
     it('should create session with user id', async () => {
+      const mockSession: Session = {
+        id: 'session-123',
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
+
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue('hashed-password');
       encodingPort.encode
@@ -400,7 +422,6 @@ describe('RegisterService', () => {
       const sessionCreateSpy = jest
         .spyOn(Session, 'create')
         .mockReturnValue(mockSession);
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(User, 'create').mockReturnValue(mockUser);
       jest
         .spyOn(Name, 'create')
@@ -420,6 +441,11 @@ describe('RegisterService', () => {
 
     it('should use same session id for both tokens', async () => {
       const mockSessionId = 'unique-session-id-123';
+      const mockSession: Session = {
+        id: mockSessionId,
+        userId: mockUser.id,
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
 
       usersRepository.findByEmail.mockResolvedValue(null);
       hasherPort.hash.mockResolvedValue('hashed-password');
@@ -427,7 +453,6 @@ describe('RegisterService', () => {
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
 
-      jest.spyOn(Session, 'generateId').mockReturnValue(mockSessionId);
       jest.spyOn(User, 'create').mockReturnValue(mockUser);
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest

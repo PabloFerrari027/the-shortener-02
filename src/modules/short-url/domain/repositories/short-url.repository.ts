@@ -6,7 +6,8 @@ export interface ShortUrlRepository {
   create(shortUrl: ShortUrl): Promise<void>;
   findByHash(hash: string): Promise<ShortUrl | null>;
   findById(id: string): Promise<ShortUrl | null>;
-  list(
+  listByUserId(
+    id: string,
     options?: PaginationOptions<keyof ShortUrlProps>,
   ): Promise<ListingResponse<ShortUrl>>;
   update(shortUrl: ShortUrl): Promise<void>;

@@ -21,6 +21,28 @@ describe('ShortUrl', () => {
       expect(shortUrl.updatedAt).toBeInstanceOf(Date);
     });
 
+    it('should create a valid ShortUrl instance with userId', () => {
+      const shortUrl = ShortUrl.create({
+        hash: 'abc123',
+        url: 'https://example.com',
+        userId: 'user-123',
+      });
+
+      expect(shortUrl).toBeInstanceOf(ShortUrl);
+      expect(shortUrl.userId).toBe('user-123');
+    });
+
+    it('should create ShortUrl with events', () => {
+      const shortUrl = ShortUrl.create({
+        hash: 'abc123',
+        url: 'https://example.com',
+      });
+
+      const events = shortUrl.pullEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toHaveProperty('props.occurredOn');
+    });
+
     it('should throw InvalidShortUrlFieldError when url is invalid', () => {
       expect(() => {
         ShortUrl.create({
@@ -81,6 +103,19 @@ describe('ShortUrl', () => {
       expect(shortUrl.clickCount).toBe(0);
     });
 
+    it('should return correct userId', () => {
+      expect(shortUrl.userId).toBeUndefined();
+    });
+
+    it('should return correct userId when set', () => {
+      const shortUrlWithUser = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+        userId: 'user-456',
+      });
+      expect(shortUrlWithUser.userId).toBe('user-456');
+    });
+
     it('should return correct createdAt', () => {
       expect(shortUrl.createdAt).toBeInstanceOf(Date);
     });
@@ -98,6 +133,8 @@ describe('ShortUrl', () => {
         hash: 'test123',
         url: 'https://test.com',
       });
+      // Clear creation event
+      shortUrl.pullEvents();
     });
 
     it('should update url and updatedAt', () => {
@@ -114,6 +151,14 @@ describe('ShortUrl', () => {
       );
 
       jest.useRealTimers();
+    });
+
+    it('should create ShortUrlChangedEvent when url is updated', () => {
+      shortUrl.url = 'https://newurl.com';
+
+      const events = shortUrl.pullEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toHaveProperty('props.occurredOn');
     });
 
     it('should throw InvalidShortUrlFieldError when setting invalid url', () => {
@@ -150,6 +195,68 @@ describe('ShortUrl', () => {
       expect(shortUrl.clickCount).toBe(2);
 
       jest.useRealTimers();
+    });
+
+    it('should create ShortUrlClickedEvent when incremented', () => {
+      const shortUrl = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+      });
+
+      // Clear creation event
+      shortUrl.pullEvents();
+
+      shortUrl.incrementClickCount();
+
+      const events = shortUrl.pullEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toHaveProperty('props.occurredOn');
+    });
+  });
+
+  describe('remove', () => {
+    it('should create ShortUrlRemovedEvent when removed', () => {
+      const shortUrl = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+      });
+
+      // Clear creation event
+      shortUrl.pullEvents();
+
+      shortUrl.remove();
+
+      const events = shortUrl.pullEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toHaveProperty('props.occurredOn');
+    });
+  });
+
+  describe('pullEvents', () => {
+    it('should return events and clear the events array', () => {
+      const shortUrl = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+      });
+
+      const events1 = shortUrl.pullEvents();
+      expect(events1).toHaveLength(1);
+
+      const events2 = shortUrl.pullEvents();
+      expect(events2).toHaveLength(0);
+    });
+
+    it('should return multiple events when multiple actions occur', () => {
+      const shortUrl = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+      });
+
+      shortUrl.incrementClickCount();
+      shortUrl.url = 'https://newurl.com';
+
+      const events = shortUrl.pullEvents();
+      expect(events).toHaveLength(3); // create + click + change
     });
   });
 
@@ -233,6 +340,23 @@ describe('ShortUrl', () => {
     });
   });
 
+  describe('generateId', () => {
+    it('should generate a valid UUID', () => {
+      const id = ShortUrl.generateId();
+      expect(id).toBeDefined();
+      expect(typeof id).toBe('string');
+      expect(id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
+    });
+
+    it('should generate unique IDs', () => {
+      const id1 = ShortUrl.generateId();
+      const id2 = ShortUrl.generateId();
+      expect(id1).not.toBe(id2);
+    });
+  });
+
   describe('equals', () => {
     it('should return true when comparing same instance', () => {
       const shortUrl = ShortUrl.create({
@@ -249,7 +373,6 @@ describe('ShortUrl', () => {
         url: 'https://test.com',
       });
 
-      // Simulando uma instância com o mesmo ID
       const shortUrl2 = ShortUrl.fromJSON(
         shortUrl1.toJSON(JSONFormats.CAMEL_CASE),
         JSONFormats.CAMEL_CASE,
@@ -313,6 +436,28 @@ describe('ShortUrl', () => {
       expect(json).toHaveProperty('createdAt');
       expect(json).toHaveProperty('updatedAt');
       expect(json.clickCount).toBe(0);
+    });
+
+    it('should include userId in snake_case JSON when present', () => {
+      const shortUrlWithUser = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+        userId: 'user-789',
+      });
+
+      const json = shortUrlWithUser.toJSON(JSONFormats.SNAKE_CASE);
+      expect(json.user_id).toBe('user-789');
+    });
+
+    it('should include userId in camelCase JSON when present', () => {
+      const shortUrlWithUser = ShortUrl.create({
+        hash: 'test123',
+        url: 'https://test.com',
+        userId: 'user-789',
+      });
+
+      const json = shortUrlWithUser.toJSON(JSONFormats.CAMEL_CASE);
+      expect(json.userId).toBe('user-789');
     });
   });
 
@@ -388,6 +533,36 @@ describe('ShortUrl', () => {
       expect(shortUrl.updatedAt).toBeInstanceOf(Date);
       expect(shortUrl.createdAt.toJSON()).toBe(now.toJSON());
     });
+
+    it('should handle userId in snake_case JSON', () => {
+      const json = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        url: 'https://test.com',
+        hash: 'test123',
+        click_count: 5,
+        user_id: 'user-abc',
+        created_at: new Date().toJSON(),
+        updated_at: new Date().toJSON(),
+      };
+
+      const shortUrl = ShortUrl.fromJSON(json, JSONFormats.SNAKE_CASE);
+      expect(shortUrl.userId).toBe('user-abc');
+    });
+
+    it('should handle userId in camelCase JSON', () => {
+      const json = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        url: 'https://test.com',
+        hash: 'test123',
+        clickCount: 5,
+        userId: 'user-xyz',
+        createdAt: new Date().toJSON(),
+        updatedAt: new Date().toJSON(),
+      };
+
+      const shortUrl = ShortUrl.fromJSON(json, JSONFormats.CAMEL_CASE);
+      expect(shortUrl.userId).toBe('user-xyz');
+    });
   });
 
   describe('integration: toJSON and fromJSON', () => {
@@ -417,6 +592,28 @@ describe('ShortUrl', () => {
       expect(restored.url).toBe(original.url);
       expect(restored.hash).toBe(original.hash);
       expect(restored.clickCount).toBe(original.clickCount);
+    });
+
+    it('should maintain userId through serialization cycle', () => {
+      const original = ShortUrl.create({
+        hash: 'test456',
+        url: 'https://example.com',
+        userId: 'user-test',
+      });
+
+      const jsonSnake = original.toJSON(JSONFormats.SNAKE_CASE);
+      const restoredSnake = ShortUrl.fromJSON(
+        jsonSnake,
+        JSONFormats.SNAKE_CASE,
+      );
+      expect(restoredSnake.userId).toBe('user-test');
+
+      const jsonCamel = original.toJSON(JSONFormats.CAMEL_CASE);
+      const restoredCamel = ShortUrl.fromJSON(
+        jsonCamel,
+        JSONFormats.CAMEL_CASE,
+      );
+      expect(restoredCamel.userId).toBe('user-test');
     });
   });
 });

@@ -11,12 +11,14 @@ import {
   Post,
   Query,
   Redirect,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiFoundResponse,
   ApiInternalServerErrorResponse,
+  ApiMethodNotAllowedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -28,6 +30,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUrl,
   IsUUID,
@@ -36,11 +39,15 @@ import {
 } from 'class-validator';
 import { HandleShortUrlService } from './services/handle-short-url.service';
 import { ShortUrlPresentation } from './presentation/short-url.presentation';
-import { ListShortnerUrlsService } from './services/list-shortner-urls.service';
+import { ListShortnerUrlsByUserService } from './services/list-shortner-urls-by-user.service';
 import { ShortUrlProps } from '../domain/entities/short-url.entity';
 import { Transform } from 'class-transformer';
 import { DeleteShortUrlService } from './services/delete-short-url.service';
 import { UpdateShortUrlService } from './services/update-short-url.service';
+import { AuthGuard } from '@/modules/auth/infra/guards/auth.guard';
+import { Session } from '@/modules/auth/infra/decorators/session.decorator';
+import type { SessionJSON } from '@/modules/auth/domain/entities/session.entity';
+import { SessionGuard } from '@/modules/auth/infra/guards/session.guard';
 
 class ShortUrl {
   @ApiProperty({
@@ -66,6 +73,12 @@ class ShortUrl {
     required: true,
   })
   short_url: string;
+
+  @ApiProperty({
+    example: 'b7f9d2a3-4567-8901-abcd-ef2345678901',
+    required: false,
+  })
+  user_id: string;
 
   @ApiProperty({
     example: 9999,
@@ -142,17 +155,20 @@ enum OrderBy {
 
 class ListShortenerUrlsQuery {
   @ApiProperty({ example: 1, required: false })
+  @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsInt()
   @Min(1)
   page?: number;
 
   @ApiProperty({ example: 'created_at', required: false })
+  @IsOptional()
   @Transform(({ value }) => (value as string).toLowerCase())
   @IsEnum(OrderBy)
   order_by?: OrderBy;
 
   @ApiProperty({ example: 'desc', required: false })
+  @IsOptional()
   @Transform(({ value }) => (value as string).toLowerCase())
   @IsEnum(Order)
   order?: Order;
@@ -186,13 +202,16 @@ class RedirectParams {
 @ApiNotFoundResponse({
   description: 'Some requested resource was not found',
 })
+@ApiMethodNotAllowedResponse({
+  description: 'The user does not have permission to perform this action.',
+})
 @ApiBearerAuth()
 export class ShortUrlController {
   constructor(
     @Inject()
     private readonly createShortUrlService: CreateShortUrlService,
     @Inject()
-    private readonly listShortnerUrlsService: ListShortnerUrlsService,
+    private readonly listShortnerUrlsService: ListShortnerUrlsByUserService,
     @Inject()
     private readonly handleShortUrlService: HandleShortUrlService,
     @Inject()
@@ -203,14 +222,19 @@ export class ShortUrlController {
 
   @Post('/short-url')
   @HttpCode(201)
+  @UseGuards(SessionGuard)
   @ApiOperation({ summary: 'Create a short url' })
   @ApiOkResponse({
     description: 'Short url created successfully',
     type: ShortUrl,
   })
-  async create(@Body() body: CreateShortUrlBody) {
+  async create(
+    @Body() body: CreateShortUrlBody,
+    @Session() session: SessionJSON<'CAMEL_CASE'> | undefined,
+  ) {
     const response = await this.createShortUrlService.execute({
       url: body.url,
+      userId: session?.userId,
     });
 
     const output = ShortUrlPresentation.toController(response.shortUrl);
@@ -219,18 +243,23 @@ export class ShortUrlController {
 
   @Get('/short-url')
   @HttpCode(200)
+  @UseGuards(SessionGuard, AuthGuard)
   @ApiOperation({ summary: 'List shotener urls' })
   @ApiOkResponse({
     description: 'Shortened URLs successfully listed.',
     type: ListShortUrlsResponse,
   })
-  async list(@Query() params: ListShortenerUrlsQuery) {
+  async list(
+    @Query() params: ListShortenerUrlsQuery,
+    @Session() session: SessionJSON<'CAMEL_CASE'>,
+  ) {
     const orderByOptions = { created_at: 'createdAt', updated_at: 'updatedAt' };
     const orderBy = orderByOptions[
       params?.order_by ?? OrderBy.CREATED_AT
     ] as keyof ShortUrlProps;
 
     const response = await this.listShortnerUrlsService.execute({
+      userId: session.userId,
       page: params.page ?? 1,
       order: params.order,
       orderBy,
@@ -247,15 +276,21 @@ export class ShortUrlController {
 
   @Patch('/short-url/:id')
   @HttpCode(200)
+  @UseGuards(SessionGuard, AuthGuard)
   @ApiOperation({ summary: 'Update a short url' })
   @ApiOkResponse({
     description: 'Short url updated successfully',
     type: ShortUrl,
   })
-  async update(@Param() params: IdParam, @Body() body: UpdateShortUrlBody) {
+  async update(
+    @Param() params: IdParam,
+    @Body() body: UpdateShortUrlBody,
+    @Session() session: SessionJSON<'CAMEL_CASE'>,
+  ) {
     const response = await this.updateShortUrlService.execute({
       id: params.id,
       url: body.url,
+      userId: session.userId,
     });
 
     const output = ShortUrlPresentation.toController(response.shortUrl);
@@ -264,13 +299,18 @@ export class ShortUrlController {
 
   @Delete('/short-url/:id')
   @HttpCode(204)
+  @UseGuards(SessionGuard, AuthGuard)
   @ApiOperation({ summary: 'Delete a short url' })
   @ApiOkResponse({
     description: 'Short url deleted successfully',
   })
-  async delete(@Param() params: IdParam) {
+  async delete(
+    @Param() params: IdParam,
+    @Session() session: SessionJSON<'CAMEL_CASE'>,
+  ) {
     await this.deleteShortUrlService.execute({
       id: params.id,
+      userId: session.userId,
     });
   }
 

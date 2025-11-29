@@ -27,7 +27,7 @@ export const JSONFormats = {
 export type JSONFormat = (typeof JSONFormats)[keyof typeof JSONFormats];
 
 export enum UserRole {
-  'ADMIN' = 'admin',
+  'ADMIN' = 'ADMIN',
   'CLINET' = 'CLINET',
 }
 

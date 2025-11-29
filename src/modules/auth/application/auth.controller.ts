@@ -12,6 +12,7 @@ import { RefreshTokenService } from './services/refresh-token.service';
 import {
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
+  ApiMethodNotAllowedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -177,6 +178,9 @@ class ValidateSessionBody {
       },
     },
   },
+})
+@ApiMethodNotAllowedResponse({
+  description: 'The user does not have permission to perform this action.',
 })
 export class AuthController {
   constructor(

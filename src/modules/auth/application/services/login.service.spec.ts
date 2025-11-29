@@ -100,7 +100,6 @@ describe('LoginService', () => {
     it('should successfully login a user with valid credentials', async () => {
       const mockAccessToken = 'encoded-access-token';
       const mockRefreshToken = 'encoded-refresh-token';
-      const mockSessionId = 'generated-session-id';
 
       usersRepository.findByEmail.mockResolvedValue(mockUser);
       hasherPort.compare.mockResolvedValue(true);
@@ -108,7 +107,6 @@ describe('LoginService', () => {
         .mockResolvedValueOnce(mockAccessToken)
         .mockResolvedValueOnce(mockRefreshToken);
 
-      jest.spyOn(Session, 'generateId').mockReturnValue(mockSessionId);
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest.spyOn(Bus, 'dispatch').mockResolvedValue(undefined);
 
@@ -121,7 +119,6 @@ describe('LoginService', () => {
         validInput.password,
         mockUser.password.value,
       );
-      expect(Session.generateId).toHaveBeenCalled();
       expect(Session.create).toHaveBeenCalledWith({ userId: mockUser.id });
       expect(encodingPort.encode).toHaveBeenCalledTimes(2);
       expect(usersRepository.update).toHaveBeenCalledWith(mockUser);
@@ -177,14 +174,19 @@ describe('LoginService', () => {
       jest.useFakeTimers();
       jest.setSystemTime(currentDate);
 
+      const mockSessionWithId: Session = {
+        id: mockSessionId,
+        userId: 'user-123',
+        pullEvents: jest.fn().mockReturnValue([]),
+      } as unknown as Session;
+
       usersRepository.findByEmail.mockResolvedValue(mockUser);
       hasherPort.compare.mockResolvedValue(true);
       encodingPort.encode
         .mockResolvedValueOnce(mockAccessToken)
         .mockResolvedValueOnce(mockRefreshToken);
 
-      jest.spyOn(Session, 'generateId').mockReturnValue(mockSessionId);
-      jest.spyOn(Session, 'create').mockReturnValue(mockSession);
+      jest.spyOn(Session, 'create').mockReturnValue(mockSessionWithId);
       jest.spyOn(Bus, 'dispatch').mockResolvedValue(undefined);
 
       await service.execute(validInput);
@@ -239,7 +241,6 @@ describe('LoginService', () => {
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
 
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(Session, 'create').mockReturnValue(mockSessionWithEvents);
 
       const dispatchSpy = jest
@@ -272,7 +273,6 @@ describe('LoginService', () => {
         callOrder.push('sessionsRepository.create');
       });
 
-      jest.spyOn(Session, 'generateId').mockReturnValue('session-id');
       jest.spyOn(Session, 'create').mockReturnValue(mockSession);
       jest.spyOn(Bus, 'dispatch').mockResolvedValue(undefined);
 

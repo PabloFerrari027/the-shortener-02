@@ -6,7 +6,12 @@ import {
 } from '../../domain/entities/short-url.entity';
 import { Order } from 'src/shared/types/pagination-options.type';
 
-type Input = { page: number; orderBy?: keyof ShortUrlProps; order?: Order };
+type Input = {
+  userId: string;
+  page: number;
+  orderBy?: keyof ShortUrlProps;
+  order?: Order;
+};
 type Output = {
   data: Array<ShortUrl>;
   totalPages: number;
@@ -14,14 +19,14 @@ type Output = {
 };
 
 @Injectable()
-export class ListShortnerUrlsService {
+export class ListShortnerUrlsByUserService {
   constructor(
     @Inject('ShortUrlRepository')
     protected readonly shortUrlRepository: ShortUrlRepository,
   ) {}
 
   async execute(input: Input): Promise<Output> {
-    const response = await this.shortUrlRepository.list({
+    const response = await this.shortUrlRepository.listByUserId(input.userId, {
       page: input.page,
       order: input.order,
       orderBy: input.orderBy,

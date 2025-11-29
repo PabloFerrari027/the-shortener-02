@@ -16,8 +16,6 @@ type ExceptionResponse =
 @Catch(Error)
 export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: Exception, host: ArgumentsHost) {
-    console.log(exception.message);
-
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 

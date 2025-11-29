@@ -6,24 +6,36 @@ import {
   HttpCode,
   Query,
   Get,
-  Put,
   Delete,
+  UseGuards,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
+  ApiMethodNotAllowedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsInt, IsNotEmpty, IsUUID, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsUUID,
+  Min,
+} from 'class-validator';
 import { UserProps, UserRole } from '../domain/entities/user.entity';
 import { ListUsersService } from './services/list-users.service';
 import { RemoveUserService } from './services/remove-user.service';
 import { UpdateUserService } from './services/update-user.service';
 import { UserPresentation } from './presentation/user.presentation';
+import { AdminGuard } from '@/modules/auth/infra/guards/admin.guard';
+import { AuthGuard } from '@/modules/auth/infra/guards/auth.guard';
+import { SessionGuard } from '@/modules/auth/infra/guards/session.guard';
 
 class User {
   @ApiProperty({
@@ -115,23 +127,27 @@ enum OrderBy {
 
 class ListUsersQuery {
   @ApiProperty({ example: 1, required: false })
+  @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsInt()
   @Min(1)
   page?: number;
 
   @ApiProperty({ example: 'created_at', required: false })
+  @IsOptional()
   @Transform(({ value }) => (value as string).toLowerCase())
   @IsEnum(OrderBy)
   order_by?: OrderBy;
 
   @ApiProperty({ example: 'desc', required: false })
+  @IsOptional()
   @Transform(({ value }) => (value as string).toLowerCase())
   @IsEnum(Order)
   order?: Order;
 }
 
-@Controller('users')
+@Controller('/users')
+@UseGuards(SessionGuard, AuthGuard, AdminGuard)
 @Injectable()
 @ApiBadRequestResponse({
   description: 'The request could not be processed due to invalid input.',
@@ -178,6 +194,9 @@ class ListUsersQuery {
     },
   },
 })
+@ApiMethodNotAllowedResponse({
+  description: 'The user does not have permission to perform this action.',
+})
 export class UsersController {
   constructor(
     private readonly listUsersService: ListUsersService,
@@ -192,15 +211,15 @@ export class UsersController {
     description: 'Users successfully listed.',
     type: ListgUsersResponse,
   })
-  async list(@Query() params: ListUsersQuery) {
+  async list(@Query() params?: ListUsersQuery) {
     const orderByOptions = { created_at: 'createdAt', updated_at: 'updatedAt' };
     const orderBy = orderByOptions[
       params?.order_by ?? OrderBy.CREATED_AT
     ] as keyof UserProps;
 
     const response = await this.listUsersService.execute({
-      page: params.page ?? 1,
-      order: params.order,
+      page: params?.page ?? 1,
+      order: params?.order,
       orderBy,
     });
 
@@ -213,7 +232,7 @@ export class UsersController {
     return output;
   }
 
-  @Put('/:id')
+  @Patch('/:id')
   @HttpCode(200)
   @ApiOperation({ summary: 'Update an user' })
   @ApiOkResponse({

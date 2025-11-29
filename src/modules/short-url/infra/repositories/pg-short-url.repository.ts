@@ -18,6 +18,7 @@ export class PgShortUrlRepository implements ShortUrlRepository {
         id: row.id,
         hash: row.hash,
         url: row.url,
+        user_id: row.user_id,
         click_count: row.click_count,
         created_at: row.created_at,
         updated_at: row.updated_at,
@@ -28,14 +29,15 @@ export class PgShortUrlRepository implements ShortUrlRepository {
 
   async create(shortUrl: ShortUrl): Promise<void> {
     const query = `
-      INSERT INTO short_urls (id, hash, url, click_count, created_at, updated_at, removed_at) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO short_urls (id, hash, url, user_id, click_count, created_at, updated_at, removed_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
     await this.pg.query(query, [
       shortUrl.id,
       shortUrl.hash,
       shortUrl.url,
+      shortUrl.userId,
       shortUrl.clickCount,
       shortUrl.createdAt,
       shortUrl.updatedAt,
@@ -64,7 +66,8 @@ export class PgShortUrlRepository implements ShortUrlRepository {
     return this.mapRowToEntity(result.rows[0]);
   }
 
-  async list(
+  async listByUserId(
+    userId: string,
     options?: PaginationOptions<keyof ShortUrlProps>,
   ): Promise<ListingResponse<ShortUrl>> {
     const currentPage = options?.page ?? 1;
@@ -78,6 +81,7 @@ export class PgShortUrlRepository implements ShortUrlRepository {
       id: 'id',
       hash: 'hash',
       url: 'url',
+      userId: 'user_id',
       clickCount: 'click_count',
       createdAt: 'created_at',
       updatedAt: 'updated_at',
@@ -87,17 +91,20 @@ export class PgShortUrlRepository implements ShortUrlRepository {
 
     const dataQuery = `
       SELECT * FROM short_urls 
-      WHERE removed_at IS NULL
+      WHERE user_id = $1 AND removed_at IS NULL
       ORDER BY ${columnName} ${sortOrder}
-      LIMIT $1 OFFSET $2
+      LIMIT $2 OFFSET $3
     `;
 
-    const countQuery =
-      'SELECT COUNT(*) as total FROM short_urls WHERE removed_at IS NULL';
+    const countQuery = `
+      SELECT COUNT(*) as total 
+      FROM short_urls 
+      WHERE user_id = $1 AND removed_at IS NULL
+    `;
 
     const [dataResult, countResult] = await Promise.all([
-      this.pg.query(dataQuery, [limit, offset]),
-      this.pg.query(countQuery),
+      this.pg.query(dataQuery, [userId, limit, offset]),
+      this.pg.query(countQuery, [userId]),
     ]);
 
     const data = dataResult.rows.map((row) => this.mapRowToEntity(row));
@@ -116,14 +123,16 @@ export class PgShortUrlRepository implements ShortUrlRepository {
     SET 
       hash = $1,
       url = $2,
-      click_count = $3,
-      updated_at = $4
-    WHERE id = $5 AND removed_at IS NULL
+      user_id = $3,
+      click_count = $4,
+      updated_at = $5
+    WHERE id = $6 AND removed_at IS NULL
   `;
 
     await this.pg.query(query, [
       shortUrl.hash,
       shortUrl.url,
+      shortUrl.userId,
       shortUrl.clickCount,
       shortUrl.updatedAt,
       shortUrl.id,

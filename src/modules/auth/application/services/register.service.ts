@@ -58,24 +58,22 @@ export class RegisterService {
     accessTokenExpiresAt.setHours(accessTokenExpiresAt.getHours() + 1);
     refreshTokenExpiresAt.setMonth(refreshTokenExpiresAt.getMonth() + 1);
 
-    const sessionId = Session.generateId();
+    const session = Session.create({
+      userId: user.id,
+    });
 
     const accessTokenPayload = JSON.stringify({
-      sessionId,
+      sessionId: session.id,
       expiresAt: accessTokenExpiresAt,
     });
 
     const refreshTokenPayload = JSON.stringify({
-      sessionId,
+      sessionId: session.id,
       expiresAt: refreshTokenExpiresAt,
     });
 
     const accessToken = await this.encodingPort.encode(accessTokenPayload);
     const refreshToken = await this.encodingPort.encode(refreshTokenPayload);
-
-    const session = Session.create({
-      userId: user.id,
-    });
 
     await this.usersRepository.create(user);
     await this.sessionsRepository.create(session);

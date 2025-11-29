@@ -5,9 +5,11 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Request } from 'express';
-import type { SessionsRepository } from '../../domain/repositories/sessions.repository';
 import { UnauthorizedError } from '../../domain/erros/unauthorized.error';
+import { UserRole } from '@/modules/users/domain/entities/user.entity';
+import type { UsersRepository } from '@/modules/users/domain/repositories/users.repository';
 import type { EncodingPort } from '@/shared/ports/encoding.port';
+import type { SessionsRepository } from '../../domain/repositories/sessions.repository';
 
 interface Payload {
   sessionId: string;
@@ -15,10 +17,12 @@ interface Payload {
 }
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   constructor(
     @Inject('EncodingPort')
     private readonly encodingPort: EncodingPort,
+    @Inject('UsersRepository')
+    private readonly usersRepository: UsersRepository,
     @Inject('SessionsRepository')
     private readonly sessionsRepository: SessionsRepository,
   ) {}
@@ -41,22 +45,17 @@ export class AuthGuard implements CanActivate {
       const decodedToken = await this.encodingPort.dencode(rawToken);
       const payload: Payload = JSON.parse(String(decodedToken));
 
-      if (!payload.sessionId || !payload.expiresAt) {
-        throw new UnauthorizedError();
-      }
-
-      const isExpired =
-        new Date(payload.expiresAt).getTime() < new Date().getTime();
-
-      if (isExpired) throw new UnauthorizedError();
+      if (!payload.sessionId) throw new UnauthorizedError();
 
       const session = await this.sessionsRepository.findById(payload.sessionId);
 
       if (!session) throw new UnauthorizedError();
 
-      if (session.closedAt || !session.validatedAt) {
-        throw new UnauthorizedError();
-      }
+      const user = await this.usersRepository.findById(session.userId);
+
+      if (!user) throw new UnauthorizedError();
+
+      if (user.role !== UserRole.ADMIN) throw new UnauthorizedError();
 
       return true;
     } catch {

@@ -147,7 +147,7 @@ describe('User Entity', () => {
   describe('isValidRole', () => {
     it('should return true for valid ADMIN role', () => {
       expect(User.isValidRole(UserRole.ADMIN)).toBe(true);
-      expect(User.isValidRole('admin')).toBe(true);
+      expect(User.isValidRole('ADMIN')).toBe(true);
     });
 
     it('should return true for valid CLINET role', () => {
@@ -344,7 +344,7 @@ describe('User Entity', () => {
 
   describe('UserRole enum', () => {
     it('should have ADMIN role', () => {
-      expect(UserRole.ADMIN).toBe('admin');
+      expect(UserRole.ADMIN).toBe('ADMIN');
     });
 
     it('should have CLINET role', () => {
