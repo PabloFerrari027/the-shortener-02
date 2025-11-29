@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v4.0.0...v5.0.0) (2025-11-29)
+
+
+### ✨ Novidades
+
+* add authorization to create, update and delete ([7a5bfa0](https://github.com/PabloFerrari027/the-shortener-02/commit/7a5bfa00bddfcc7127743c1b76d84b3b945e99f1))
+* add NotAllowedError for authorization failures ([51b7841](https://github.com/PabloFerrari027/the-shortener-02/commit/51b7841b182969ed08a4d27c51720b3e316e2195))
+* add user ownership to short URLs ([c11ca8b](https://github.com/PabloFerrari027/the-shortener-02/commit/c11ca8bfa5e289b9c03a5535be68e59575a476c5))
+* create session decorator and guard ([cfbd17e](https://github.com/PabloFerrari027/the-shortener-02/commit/cfbd17e6e121c2f676d83efc1e8402d2d268dbe4))
+* enhance users controller with proper guards ([6304c67](https://github.com/PabloFerrari027/the-shortener-02/commit/6304c672e5f98c13c00555a538db9bf35a918f6c))
+* implement user-specific URL listing ([b519a27](https://github.com/PabloFerrari027/the-shortener-02/commit/b519a271de6e7e6a0bda7199234cb9de5cc6525a))
+* integrate session and auth guards in controller ([3cc4e74](https://github.com/PabloFerrari027/the-shortener-02/commit/3cc4e7444f5b3d1f29bcdd04a950841767963ac9))
+
+
+### 🐛 Correções
+
+* correct token expiration validation logic ([f9fcb2d](https://github.com/PabloFerrari027/the-shortener-02/commit/f9fcb2d1d3b03f334a483737610b7f0fcfce6d4b))
+* improve user deletion with transaction ([3091779](https://github.com/PabloFerrari027/the-shortener-02/commit/3091779fa2246e364931e052a276839cb60b1758))
+
+
+### ♻️ Refatoração
+
+* remove Session.generateId() method ([c2267ad](https://github.com/PabloFerrari027/the-shortener-02/commit/c2267ade8b7d89322d1edba473f1ca2c022b5a56))
+* rename and improve role guard ([d3d20dc](https://github.com/PabloFerrari027/the-shortener-02/commit/d3d20dc9cbf6b9a89a3685cf9501be24ba127a49))
+* reorder module imports ([7148a5f](https://github.com/PabloFerrari027/the-shortener-02/commit/7148a5fffc5919703b7020772d1cb03be63b47a4))
+
+
+### 🔧 Manutenção
+
+* remove debug console.log statements ([e1b7351](https://github.com/PabloFerrari027/the-shortener-02/commit/e1b735124bc04109d3b6adda3e608e1e1e41f462))
+* update start scripts and add concurrently ([7ee8c8a](https://github.com/PabloFerrari027/the-shortener-02/commit/7ee8c8a362d897ac47ff20b5ff4ca63bf9f601ff))
+
 ## [4.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v3.0.0...v4.0.0) (2025-11-29)
 
 
