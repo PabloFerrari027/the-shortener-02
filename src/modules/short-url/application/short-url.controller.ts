@@ -11,6 +11,7 @@ import {
   Post,
   Query,
   Redirect,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -41,6 +42,7 @@ import { ShortUrlProps } from '../domain/entities/short-url.entity';
 import { Transform } from 'class-transformer';
 import { DeleteShortUrlService } from './services/delete-short-url.service';
 import { UpdateShortUrlService } from './services/update-short-url.service';
+import { AuthGuard } from '@/modules/auth/infra/guards/auth.guard';
 
 class ShortUrl {
   @ApiProperty({
@@ -219,6 +221,7 @@ export class ShortUrlController {
 
   @Get('/short-url')
   @HttpCode(200)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'List shotener urls' })
   @ApiOkResponse({
     description: 'Shortened URLs successfully listed.',
@@ -247,6 +250,7 @@ export class ShortUrlController {
 
   @Patch('/short-url/:id')
   @HttpCode(200)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Update a short url' })
   @ApiOkResponse({
     description: 'Short url updated successfully',
@@ -264,6 +268,7 @@ export class ShortUrlController {
 
   @Delete('/short-url/:id')
   @HttpCode(204)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Delete a short url' })
   @ApiOkResponse({
     description: 'Short url deleted successfully',
