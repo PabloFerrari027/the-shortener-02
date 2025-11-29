@@ -158,22 +158,42 @@ export class PgUsersRepository implements UsersRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const query = `
-      UPDATE sessions
-      SET removed_at = $1, updated_at = $1
-      WHERE user_id = $2 AND removed_at IS NULL;
-      
-      UPDATE code_validations
-      SET removed_at = $1, updated_at = $1
-      WHERE session_id IN (
-        SELECT id FROM sessions WHERE user_id = $2
-      ) AND removed_at IS NULL;
-      
-      UPDATE users
-      SET removed_at = $1, updated_at = $1
-      WHERE id = $2 AND removed_at IS NULL
-    `;
+    const client = await this.pool.connect();
 
-    await this.pool.query(query, [new Date(), id]);
+    try {
+      await client.query('BEGIN');
+
+      const now = new Date();
+
+      await client.query(
+        `UPDATE sessions
+       SET closed_at = $1, removed_at = $1, updated_at = $1
+       WHERE user_id = $2 AND removed_at IS NULL`,
+        [now, id],
+      );
+
+      await client.query(
+        `UPDATE code_validations
+       SET removed_at = $1, updated_at = $1
+       WHERE session_id IN (
+         SELECT id FROM sessions WHERE user_id = $2
+       ) AND removed_at IS NULL`,
+        [now, id],
+      );
+
+      await client.query(
+        `UPDATE users
+       SET removed_at = $1, updated_at = $1
+       WHERE id = $2 AND removed_at IS NULL`,
+        [now, id],
+      );
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }
