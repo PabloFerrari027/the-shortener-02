@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v2.0.0...v3.0.0) (2025-11-29)
+
+
+### 🐛 Correções
+
+* use currentPage from repository response ([4045407](https://github.com/PabloFerrari027/the-shortener-02/commit/40454070dfa06242e7ee2286cfd0515a5dce2856))
+
+
+### ♻️ Refatoração
+
+* rename ListingResponse to ListShortUrlsResponse ([bf68d19](https://github.com/PabloFerrari027/the-shortener-02/commit/bf68d1939f22d8e96ea876ed78cc8064cfe2fa21))
+
+
+### ✨ Novidades
+
+* add list method to users repository ([b53a33a](https://github.com/PabloFerrari027/the-shortener-02/commit/b53a33a92480651240f05965098a608d5b2a21c6))
+* add list users service with tests ([bfa9672](https://github.com/PabloFerrari027/the-shortener-02/commit/bfa96721a9461705a1542c0ca98cf11f6fe02bd4))
+* add remove user service with tests ([6a1706f](https://github.com/PabloFerrari027/the-shortener-02/commit/6a1706f518f1cccd4a9fe19b109182cc19c92930))
+* add update user service with tests ([0eef89a](https://github.com/PabloFerrari027/the-shortener-02/commit/0eef89a40af252d58cef0e39523d84442199144c))
+* add user presentation layer ([e2ae58b](https://github.com/PabloFerrari027/the-shortener-02/commit/e2ae58b67bc28b4c64cc7814e6881139068be195))
+* add user role change functionality ([a235503](https://github.com/PabloFerrari027/the-shortener-02/commit/a235503d3ddfba98e293f6615acc24130819d720))
+* add users controller with CRUD endpoints ([66df85d](https://github.com/PabloFerrari027/the-shortener-02/commit/66df85daeb059436db8162eb68479c0781851c94))
+* add users module and register in app ([cbb1658](https://github.com/PabloFerrari027/the-shortener-02/commit/cbb16587f5e0f24adc269e8e2092487259531d73))
+
 ## [2.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v1.0.0...v2.0.0) (2025-11-29)
 
 
