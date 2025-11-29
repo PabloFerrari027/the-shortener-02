@@ -3,23 +3,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShortUrlController } from './short-url.controller';
 import { CreateShortUrlService } from './services/create-short-url.service';
-import { ListShortnerUrlsService } from './services/list-shortner-urls.service';
+import { ListShortnerUrlsByUserService } from './services/list-shortner-urls-by-user.service';
 import { HandleShortUrlService } from './services/handle-short-url.service';
 import { UpdateShortUrlService } from './services/update-short-url.service';
 import { DeleteShortUrlService } from './services/delete-short-url.service';
 import { ShortUrl } from '../domain/entities/short-url.entity';
 import { ShortUrlPresentation } from './presentation/short-url.presentation';
 import { AuthGuard } from '@/modules/auth/infra/guards/auth.guard';
+import { SessionGuard } from '@/modules/auth/infra/guards/session.guard';
 import { ExecutionContext } from '@nestjs/common';
 
 describe('ShortUrlController', () => {
   let controller: ShortUrlController;
   let createShortUrlService: jest.Mocked<CreateShortUrlService>;
-  let listShortnerUrlsService: jest.Mocked<ListShortnerUrlsService>;
+  let listShortnerUrlsService: jest.Mocked<ListShortnerUrlsByUserService>;
   let handleShortUrlService: jest.Mocked<HandleShortUrlService>;
   let updateShortUrlService: jest.Mocked<UpdateShortUrlService>;
   let deleteShortUrlService: jest.Mocked<DeleteShortUrlService>;
   let authGuard: AuthGuard;
+  let sessionGuard: SessionGuard;
 
   const mockCreateShortUrlService = {
     execute: jest.fn(),
@@ -53,6 +55,11 @@ describe('ShortUrlController', () => {
     delete: jest.fn(),
   };
 
+  const mockSession = {
+    userId: 'user-123',
+    sessionId: 'session-456',
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ShortUrlController],
@@ -62,7 +69,7 @@ describe('ShortUrlController', () => {
           useValue: mockCreateShortUrlService,
         },
         {
-          provide: ListShortnerUrlsService,
+          provide: ListShortnerUrlsByUserService,
           useValue: mockListShortnerUrlsService,
         },
         {
@@ -84,6 +91,12 @@ describe('ShortUrlController', () => {
           },
         },
         {
+          provide: SessionGuard,
+          useValue: {
+            canActivate: jest.fn().mockResolvedValue(true),
+          },
+        },
+        {
           provide: 'EncodingPort',
           useValue: mockEncodingPort,
         },
@@ -95,15 +108,18 @@ describe('ShortUrlController', () => {
     })
       .overrideGuard(AuthGuard)
       .useValue({ canActivate: jest.fn(() => true) })
+      .overrideGuard(SessionGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
     controller = module.get<ShortUrlController>(ShortUrlController);
     createShortUrlService = module.get(CreateShortUrlService);
-    listShortnerUrlsService = module.get(ListShortnerUrlsService);
+    listShortnerUrlsService = module.get(ListShortnerUrlsByUserService);
     handleShortUrlService = module.get(HandleShortUrlService);
     updateShortUrlService = module.get(UpdateShortUrlService);
     deleteShortUrlService = module.get(DeleteShortUrlService);
     authGuard = module.get(AuthGuard);
+    sessionGuard = module.get(SessionGuard);
 
     jest.clearAllMocks();
   });
@@ -125,14 +141,34 @@ describe('ShortUrlController', () => {
 
       const presentationSpy = jest.spyOn(ShortUrlPresentation, 'toController');
 
-      const result = await controller.create(body);
+      const result = await controller.create(body, mockSession as any);
 
       expect(createShortUrlService.execute).toHaveBeenCalledTimes(1);
       expect(createShortUrlService.execute).toHaveBeenCalledWith({
         url: body.url,
+        userId: mockSession.userId,
       });
       expect(presentationSpy).toHaveBeenCalledWith(mockShortUrl);
       expect(result).toBeDefined();
+    });
+
+    it('should create a short url without userId when session is undefined', async () => {
+      const body = { url: 'https://example.com/very-long-url' };
+      const mockShortUrl = ShortUrl.create({
+        hash: 'abc123',
+        url: body.url,
+      });
+
+      createShortUrlService.execute.mockResolvedValue({
+        shortUrl: mockShortUrl,
+      });
+
+      await controller.create(body, undefined);
+
+      expect(createShortUrlService.execute).toHaveBeenCalledWith({
+        url: body.url,
+        userId: undefined,
+      });
     });
 
     it('should handle different urls', async () => {
@@ -146,10 +182,11 @@ describe('ShortUrlController', () => {
         shortUrl: mockShortUrl,
       });
 
-      const result = await controller.create(body);
+      const result = await controller.create(body, mockSession as any);
 
       expect(createShortUrlService.execute).toHaveBeenCalledWith({
         url: body.url,
+        userId: mockSession.userId,
       });
       expect(result).toBeDefined();
     });
@@ -159,13 +196,16 @@ describe('ShortUrlController', () => {
       const error = new Error('Service error');
       createShortUrlService.execute.mockRejectedValue(error);
 
-      await expect(controller.create(body)).rejects.toThrow('Service error');
+      await expect(controller.create(body, mockSession as any)).rejects.toThrow(
+        'Service error',
+      );
     });
   });
 
   describe('list', () => {
     beforeEach(() => {
       (authGuard.canActivate as jest.Mock).mockResolvedValue(true);
+      (sessionGuard.canActivate as jest.Mock).mockResolvedValue(true);
     });
 
     it('should list short urls with pagination and return formatted output', async () => {
@@ -190,10 +230,11 @@ describe('ShortUrlController', () => {
 
       const presentationSpy = jest.spyOn(ShortUrlPresentation, 'toController');
 
-      const result = await controller.list(params);
+      const result = await controller.list(params, mockSession as any);
 
       expect(listShortnerUrlsService.execute).toHaveBeenCalledTimes(1);
       expect(listShortnerUrlsService.execute).toHaveBeenCalledWith({
+        userId: mockSession.userId,
         page: 1,
         order: 'desc',
         orderBy: 'createdAt',
@@ -213,9 +254,10 @@ describe('ShortUrlController', () => {
 
       listShortnerUrlsService.execute.mockResolvedValue(mockServiceResponse);
 
-      await controller.list(params);
+      await controller.list(params, mockSession as any);
 
       expect(listShortnerUrlsService.execute).toHaveBeenCalledWith({
+        userId: mockSession.userId,
         page: 1,
         order: undefined,
         orderBy: 'createdAt',
@@ -237,9 +279,10 @@ describe('ShortUrlController', () => {
 
       listShortnerUrlsService.execute.mockResolvedValue(mockServiceResponse);
 
-      await controller.list(params);
+      await controller.list(params, mockSession as any);
 
       expect(listShortnerUrlsService.execute).toHaveBeenCalledWith({
+        userId: mockSession.userId,
         page: 2,
         order: 'asc',
         orderBy: 'updatedAt',
@@ -261,9 +304,10 @@ describe('ShortUrlController', () => {
 
       listShortnerUrlsService.execute.mockResolvedValue(mockServiceResponse);
 
-      await controller.list(params);
+      await controller.list(params, mockSession as any);
 
       expect(listShortnerUrlsService.execute).toHaveBeenCalledWith({
+        userId: mockSession.userId,
         page: 10,
         order: 'desc',
         orderBy: 'createdAt',
@@ -285,7 +329,7 @@ describe('ShortUrlController', () => {
 
       listShortnerUrlsService.execute.mockResolvedValue(mockServiceResponse);
 
-      const result = await controller.list(params);
+      const result = await controller.list(params, mockSession as any);
 
       expect(result).toBeDefined();
       expect(listShortnerUrlsService.execute).toHaveBeenCalled();
@@ -300,7 +344,9 @@ describe('ShortUrlController', () => {
       const error = new Error('Database error');
       listShortnerUrlsService.execute.mockRejectedValue(error);
 
-      await expect(controller.list(params)).rejects.toThrow('Database error');
+      await expect(controller.list(params, mockSession as any)).rejects.toThrow(
+        'Database error',
+      );
     });
 
     it('should correctly map created_at to createdAt', async () => {
@@ -316,7 +362,7 @@ describe('ShortUrlController', () => {
         currentPage: 1,
       });
 
-      await controller.list(params);
+      await controller.list(params, mockSession as any);
 
       const callArgs = listShortnerUrlsService.execute.mock.calls[0][0];
       expect(callArgs.orderBy).toBe('createdAt');
@@ -335,7 +381,7 @@ describe('ShortUrlController', () => {
         currentPage: 1,
       });
 
-      await controller.list(params);
+      await controller.list(params, mockSession as any);
 
       const callArgs = listShortnerUrlsService.execute.mock.calls[0][0];
       expect(callArgs.orderBy).toBe('updatedAt');
@@ -353,6 +399,7 @@ describe('ShortUrlController', () => {
   describe('update', () => {
     beforeEach(() => {
       (authGuard.canActivate as jest.Mock).mockResolvedValue(true);
+      (sessionGuard.canActivate as jest.Mock).mockResolvedValue(true);
     });
 
     it('should update a short url and return formatted output', async () => {
@@ -368,12 +415,13 @@ describe('ShortUrlController', () => {
 
       const presentationSpy = jest.spyOn(ShortUrlPresentation, 'toController');
 
-      const result = await controller.update(params, body);
+      const result = await controller.update(params, body, mockSession as any);
 
       expect(updateShortUrlService.execute).toHaveBeenCalledTimes(1);
       expect(updateShortUrlService.execute).toHaveBeenCalledWith({
         id: params.id,
         url: body.url,
+        userId: mockSession.userId,
       });
       expect(presentationSpy).toHaveBeenCalledWith(mockShortUrl);
       expect(result).toBeDefined();
@@ -391,11 +439,12 @@ describe('ShortUrlController', () => {
         shortUrl: mockShortUrl,
       });
 
-      const result = await controller.update(params, body);
+      const result = await controller.update(params, body, mockSession as any);
 
       expect(updateShortUrlService.execute).toHaveBeenCalledWith({
         id: params.id,
         url: body.url,
+        userId: mockSession.userId,
       });
       expect(result).toBeDefined();
     });
@@ -406,9 +455,9 @@ describe('ShortUrlController', () => {
       const error = new Error('Not found');
       updateShortUrlService.execute.mockRejectedValue(error);
 
-      await expect(controller.update(params, body)).rejects.toThrow(
-        'Not found',
-      );
+      await expect(
+        controller.update(params, body, mockSession as any),
+      ).rejects.toThrow('Not found');
     });
 
     it('should handle urls with query parameters', async () => {
@@ -425,11 +474,12 @@ describe('ShortUrlController', () => {
         shortUrl: mockShortUrl,
       });
 
-      await controller.update(params, body);
+      await controller.update(params, body, mockSession as any);
 
       expect(updateShortUrlService.execute).toHaveBeenCalledWith({
         id: params.id,
         url: body.url,
+        userId: mockSession.userId,
       });
     });
 
@@ -445,11 +495,12 @@ describe('ShortUrlController', () => {
         shortUrl: mockShortUrl,
       });
 
-      await controller.update(params, body);
+      await controller.update(params, body, mockSession as any);
 
       expect(updateShortUrlService.execute).toHaveBeenCalledWith({
         id: params.id,
         url: body.url,
+        userId: mockSession.userId,
       });
     });
 
@@ -465,17 +516,19 @@ describe('ShortUrlController', () => {
   describe('delete', () => {
     beforeEach(() => {
       (authGuard.canActivate as jest.Mock).mockResolvedValue(true);
+      (sessionGuard.canActivate as jest.Mock).mockResolvedValue(true);
     });
 
     it('should delete a short url', async () => {
       const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
       deleteShortUrlService.execute.mockResolvedValue(undefined);
 
-      await controller.delete(params);
+      await controller.delete(params, mockSession as any);
 
       expect(deleteShortUrlService.execute).toHaveBeenCalledTimes(1);
       expect(deleteShortUrlService.execute).toHaveBeenCalledWith({
         id: params.id,
+        userId: mockSession.userId,
       });
     });
 
@@ -483,10 +536,11 @@ describe('ShortUrlController', () => {
       const params = { id: 'a1b2c3d4-5678-90ab-cdef-123456789012' };
       deleteShortUrlService.execute.mockResolvedValue(undefined);
 
-      await controller.delete(params);
+      await controller.delete(params, mockSession as any);
 
       expect(deleteShortUrlService.execute).toHaveBeenCalledWith({
         id: params.id,
+        userId: mockSession.userId,
       });
     });
 
@@ -495,14 +549,16 @@ describe('ShortUrlController', () => {
       const error = new Error('Not found');
       deleteShortUrlService.execute.mockRejectedValue(error);
 
-      await expect(controller.delete(params)).rejects.toThrow('Not found');
+      await expect(
+        controller.delete(params, mockSession as any),
+      ).rejects.toThrow('Not found');
     });
 
     it('should not return any value', async () => {
       const params = { id: 'b7f9d2a3-4567-8901-abcd-ef2345678901' };
       deleteShortUrlService.execute.mockResolvedValue(undefined);
 
-      const result = await controller.delete(params);
+      const result = await controller.delete(params, mockSession as any);
 
       expect(result).toBeUndefined();
     });
@@ -512,9 +568,9 @@ describe('ShortUrlController', () => {
       const error = new Error('Database connection failed');
       deleteShortUrlService.execute.mockRejectedValue(error);
 
-      await expect(controller.delete(params)).rejects.toThrow(
-        'Database connection failed',
-      );
+      await expect(
+        controller.delete(params, mockSession as any),
+      ).rejects.toThrow('Database connection failed');
     });
 
     it('should block access when authentication fails', async () => {
@@ -650,28 +706,28 @@ describe('ShortUrlController', () => {
     });
   });
 
-  describe('AuthGuard integration', () => {
-    it('should verify guard is applied to list endpoint', () => {
+  describe('AuthGuard and SessionGuard integration', () => {
+    it('should verify guards are applied to list endpoint', () => {
       const guards = Reflect.getMetadata('__guards__', controller.list);
       expect(guards).toBeDefined();
     });
 
-    it('should verify guard is applied to update endpoint', () => {
+    it('should verify guards are applied to update endpoint', () => {
       const guards = Reflect.getMetadata('__guards__', controller.update);
       expect(guards).toBeDefined();
     });
 
-    it('should verify guard is applied to delete endpoint', () => {
+    it('should verify guards are applied to delete endpoint', () => {
       const guards = Reflect.getMetadata('__guards__', controller.delete);
       expect(guards).toBeDefined();
     });
 
-    it('should verify guard is NOT applied to create endpoint', () => {
+    it('should verify SessionGuard is applied to create endpoint', () => {
       const guards = Reflect.getMetadata('__guards__', controller.create);
-      expect(guards).toBeUndefined();
+      expect(guards).toBeDefined();
     });
 
-    it('should verify guard is NOT applied to redirect endpoint', () => {
+    it('should verify guards are NOT applied to redirect endpoint', () => {
       const guards = Reflect.getMetadata('__guards__', controller.redirect);
       expect(guards).toBeUndefined();
     });
