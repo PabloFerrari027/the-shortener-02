@@ -4,6 +4,10 @@ import { Email } from '@/modules/users/domain/value-objects/email.value-object';
 import { Password } from '../value-objects/password.value-object';
 import { UserCreatedEvent } from '../events/user-created.event';
 import { UserRemovedEvent } from '../events/user-removed.event';
+import { UserRoleChangedEvent } from '../events/user-role-changed.event';
+import { InvalidRoleError } from '../errors/invalid-role.error';
+import { RootUserRoleChangeNotAllowedError } from '../errors/root-user-role-chager-not-allowed.error';
+import { Env } from '@/shared/env';
 
 describe('User Entity', () => {
   const mockUserProps = {
@@ -71,6 +75,91 @@ describe('User Entity', () => {
 
     it('should return updatedAt', () => {
       expect(user.updatedAt).toBeInstanceOf(Date);
+    });
+  });
+
+  describe('role setter', () => {
+    let user: User;
+
+    beforeEach(() => {
+      user = User.create(mockUserProps);
+      user.pullEvents(); // Limpa eventos de criação
+    });
+
+    it('should change user role and create UserRoleChangedEvent', () => {
+      user.role = UserRole.CLINET;
+
+      expect(user.role).toBe(UserRole.CLINET);
+
+      const events = user.pullEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(UserRoleChangedEvent);
+      expect(events[0].props).toHaveProperty('id', user.id);
+      expect(events[0].props).toHaveProperty('from', UserRole.ADMIN);
+      expect(events[0].props).toHaveProperty('to', UserRole.CLINET);
+      expect(events[0].props).toHaveProperty('occurredOn');
+    });
+
+    it('should not create event when setting the same role', () => {
+      user.role = UserRole.ADMIN;
+
+      const events = user.pullEvents();
+      expect(events).toHaveLength(0);
+      expect(user.role).toBe(UserRole.ADMIN);
+    });
+
+    it('should throw InvalidRoleError when setting invalid role', () => {
+      expect(() => {
+        user.role = 'INVALID_ROLE' as UserRole;
+      }).toThrow(InvalidRoleError);
+    });
+
+    it('should throw RootUserRoleChangeNotAllowedError when trying to change root user role', () => {
+      const rootUserEmail = 'root@example.com';
+      const originalRootEmail = Env.ROOT_USER_EMAIL;
+
+      // Mock do Env.ROOT_USER_EMAIL
+      Object.defineProperty(Env, 'ROOT_USER_EMAIL', {
+        value: rootUserEmail,
+        writable: true,
+        configurable: true,
+      });
+
+      const rootUser = User.create({
+        ...mockUserProps,
+        email: Email.create(rootUserEmail),
+      });
+      rootUser.pullEvents(); // Limpa eventos de criação
+
+      expect(() => {
+        rootUser.role = UserRole.CLINET;
+      }).toThrow(RootUserRoleChangeNotAllowedError);
+
+      // Restaura o valor original
+      Object.defineProperty(Env, 'ROOT_USER_EMAIL', {
+        value: originalRootEmail,
+        writable: true,
+        configurable: true,
+      });
+    });
+  });
+
+  describe('isValidRole', () => {
+    it('should return true for valid ADMIN role', () => {
+      expect(User.isValidRole(UserRole.ADMIN)).toBe(true);
+      expect(User.isValidRole('admin')).toBe(true);
+    });
+
+    it('should return true for valid CLINET role', () => {
+      expect(User.isValidRole(UserRole.CLINET)).toBe(true);
+      expect(User.isValidRole('CLINET')).toBe(true);
+    });
+
+    it('should return false for invalid role', () => {
+      expect(User.isValidRole('INVALID_ROLE')).toBe(false);
+      expect(User.isValidRole('user')).toBe(false);
+      expect(User.isValidRole('manager')).toBe(false);
+      expect(User.isValidRole('')).toBe(false);
     });
   });
 
