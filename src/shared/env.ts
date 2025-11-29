@@ -30,4 +30,22 @@ export class Env {
   static get PG_PASS(): string {
     return process.env.PG_PASS!;
   }
+  static get ENCODE_SECRET(): string {
+    return process.env.ENCODE_SECRET!;
+  }
+  static get REDIS_URL(): string {
+    return process.env.REDIS_URL!;
+  }
+  static get TEMPLATE_LANGUAGE(): string {
+    return process.env.TEMPLATE_LANGUAGE!;
+  }
+  static get ROOT_USER_NAME(): string {
+    return process.env.ROOT_USER_NAME!;
+  }
+  static get ROOT_USER_PASS(): string {
+    return process.env.ROOT_USER_PASS!;
+  }
+  static get ROOT_USER_EMAIL(): string {
+    return process.env.ROOT_USER_EMAIL!;
+  }
 }
