@@ -15,6 +15,7 @@ export interface ShortUrlProps {
   hash: string;
   url: string;
   clickCount: number;
+  userId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +25,7 @@ export interface SnakeCaseJSON {
   url: string;
   hash: string;
   click_count: number;
+  user_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +35,7 @@ export interface CamelCaseJSON {
   hash: string;
   url: string;
   clickCount: number;
+  userId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -74,6 +77,10 @@ export class ShortUrl {
 
   get clickCount(): number {
     return this.props.clickCount;
+  }
+
+  get userId(): string | undefined {
+    return this.props.userId;
   }
 
   get createdAt(): Date {
@@ -168,6 +175,7 @@ export class ShortUrl {
           url: this.url,
           hash: this.hash,
           click_count: this.clickCount,
+          user_id: this.userId,
           updated_at: this.updatedAt.toJSON(),
           created_at: this.createdAt.toJSON(),
         } as ShortUrlJSON<F>;
@@ -180,6 +188,7 @@ export class ShortUrl {
           hash: this.hash,
           url: this.url,
           clickCount: this.clickCount,
+          userId: this.userId,
           updatedAt: this.updatedAt.toJSON(),
           createdAt: this.createdAt.toJSON(),
         } as ShortUrlJSON<F>;
@@ -199,6 +208,7 @@ export class ShortUrl {
           id: snakeJson.id,
           url: snakeJson.url,
           hash: snakeJson.hash,
+          userId: snakeJson.user_id,
           clickCount: snakeJson.click_count,
           createdAt: new Date(snakeJson.created_at),
           updatedAt: new Date(snakeJson.updated_at),
@@ -212,6 +222,7 @@ export class ShortUrl {
           url: camelJson.url,
           hash: camelJson.hash,
           clickCount: camelJson.clickCount,
+          userId: camelJson.userId,
           createdAt: new Date(camelJson.createdAt),
           updatedAt: new Date(camelJson.updatedAt),
         });

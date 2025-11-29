@@ -8,6 +8,7 @@ export class CreateShortUrlTable implements Migration {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         hash VARCHAR(50) UNIQUE NOT NULL,
         url TEXT NOT NULL,
+        user_id UUID NULL,
         click_count INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -25,6 +26,9 @@ export class CreateShortUrlTable implements Migration {
 
       CREATE INDEX IF NOT EXISTS idx_short_urls_removed_at 
         ON short_urls(removed_at);
+
+      CREATE INDEX IF NOT EXISTS idx_short_urls_user_id 
+        ON short_urls(user_id) WHERE user_id IS NOT NULL;
 
       CREATE OR REPLACE FUNCTION update_updated_at_column()
       RETURNS TRIGGER AS $$
