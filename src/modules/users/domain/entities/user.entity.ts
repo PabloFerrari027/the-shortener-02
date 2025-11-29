@@ -4,6 +4,10 @@ import { BaseEvent } from '@/shared/common/base-event';
 import { UserRemovedEvent } from '../events/user-removed.event';
 import { UserCreatedEvent } from '../events/user-created.event';
 import { Password } from '../value-objects/password.value-object';
+import { InvalidRoleError } from '../errors/invalid-role.error';
+import { UserRoleChangedEvent } from '../events/user-role-changed.event';
+import { Env } from '@/shared/env';
+import { RootUserRoleChangeNotAllowedError } from '../errors/root-user-role-chager-not-allowed.error';
 
 export interface UserProps {
   id: string;
@@ -75,7 +79,7 @@ export class User {
     return this.props.password;
   }
 
-  get role(): string {
+  get role(): UserRole {
     return this.props.role;
   }
 
@@ -85,6 +89,23 @@ export class User {
 
   get updatedAt(): Date {
     return this.props.updatedAt;
+  }
+
+  set role(role: UserRole) {
+    if (role === this.role) return;
+    if (!User.isValidRole(role)) throw new InvalidRoleError(role);
+    if (this.email.value === Env.ROOT_USER_EMAIL) {
+      throw new RootUserRoleChangeNotAllowedError();
+    }
+
+    const event = new UserRoleChangedEvent({
+      occurredOn: new Date(),
+      id: this.id,
+      to: role,
+      from: this.role,
+    });
+    this.props.role = role;
+    this.events.push(event);
   }
 
   toJSON<F extends JSONFormat>(format: F): UserJSON<F> {
@@ -118,6 +139,10 @@ export class User {
       JSON.stringify(this.toJSON('CAMEL_CASE')) ===
       JSON.stringify(other.toJSON('CAMEL_CASE'))
     );
+  }
+
+  static isValidRole(role: string): boolean {
+    return Object.values(UserRole).includes(role as UserRole);
   }
 
   static compare(a: User, b: User): boolean {

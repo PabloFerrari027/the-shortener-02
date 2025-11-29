@@ -13,6 +13,7 @@ import { BullQueueAdapter } from './shared/infra/adapters/bull-queue.adapter';
 import { VerificationCodeTemplate } from './modules/auth/templates/verification-code.template';
 import { DomainEventsManager } from './shared/infra/managers/domain-events.manager';
 import { SessionCreatedHandler } from './modules/auth/application/handlers/events/session-created.handler';
+import { UsersModule } from './modules/users/users.module';
 
 @Global()
 @Module({
@@ -23,6 +24,7 @@ import { SessionCreatedHandler } from './modules/auth/application/handlers/event
     }),
     ShortUrlModule,
     AuthModule,
+    UsersModule,
   ],
   providers: [
     SessionCreatedHandler,

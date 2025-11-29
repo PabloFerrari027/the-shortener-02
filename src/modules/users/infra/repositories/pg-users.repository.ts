@@ -2,6 +2,11 @@ import { Pool } from 'pg';
 import { User, JSONFormats } from '../../domain/entities/user.entity';
 import { UsersRepository } from '../../domain/repositories/users.repository';
 import { PG } from '@/shared/infra/database/pg';
+import {
+  Order,
+  PaginationOptions,
+} from '@/shared/types/pagination-options.type';
+import { ListingResponse } from '@/shared/types/listing-response.type';
 
 export class PgUsersRepository implements UsersRepository {
   private pool: Pool;
@@ -100,6 +105,56 @@ export class PgUsersRepository implements UsersRepository {
     if (result.rows.length === 0) return null;
 
     return this.mapRowToEntity(result.rows[0]);
+  }
+
+  async list(
+    options?: PaginationOptions<keyof User>,
+  ): Promise<ListingResponse<User>> {
+    const page = options?.page ?? 1;
+    const orderBy = options?.orderBy ?? 'createdAt';
+    const order = options?.order ?? Order.DESC;
+
+    const fieldMapping: Record<string, string> = {
+      id: 'id',
+      name: 'name',
+      email: 'email',
+      password: 'password',
+      role: 'role',
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    };
+
+    const dbField = fieldMapping[orderBy as string] || 'created_at';
+    const take = 100;
+    const offset = (page - 1) * take;
+
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM users
+      WHERE removed_at IS NULL
+    `;
+
+    const countResult = await this.pool.query(countQuery);
+    const total = parseInt(String(countResult.rows[0].total), 10);
+    const totalPages = Math.ceil(total / take);
+
+    const dataQuery = `
+      SELECT *
+      FROM users
+      WHERE removed_at IS NULL
+      ORDER BY ${dbField} ${order.toUpperCase()}
+      LIMIT $1 OFFSET $2
+    `;
+
+    const dataResult = await this.pool.query(dataQuery, [take, offset]);
+
+    const users = dataResult.rows.map((row) => this.mapRowToEntity(row));
+
+    return {
+      data: users,
+      currentPage: page,
+      totalPages,
+    };
   }
 
   async delete(id: string): Promise<void> {

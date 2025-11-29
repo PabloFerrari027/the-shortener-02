@@ -29,7 +29,7 @@ export class ListShortnerUrlsService {
 
     return {
       data: response.data,
-      currentPage: input.page,
+      currentPage: response.currentPage,
       totalPages: response.totalPages,
     };
   }

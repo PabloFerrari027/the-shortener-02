@@ -86,7 +86,7 @@ class ShortUrl {
   updated_at: string;
 }
 
-class ListingResponse {
+class ListShortUrlsResponse {
   @ApiProperty({
     example: 1,
     required: true,
@@ -222,7 +222,7 @@ export class ShortUrlController {
   @ApiOperation({ summary: 'List shotener urls' })
   @ApiOkResponse({
     description: 'Shortened URLs successfully listed.',
-    type: ListingResponse,
+    type: ListShortUrlsResponse,
   })
   async list(@Query() params: ListShortenerUrlsQuery) {
     const orderByOptions = { created_at: 'createdAt', updated_at: 'updatedAt' };
