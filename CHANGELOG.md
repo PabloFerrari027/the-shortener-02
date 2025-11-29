@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v1.0.0...v2.0.0) (2025-11-29)
+
+
+### 🐛 Correções
+
+* remove trailing space from hasher.port import path ([7c047ff](https://github.com/PabloFerrari027/the-shortener-02/commit/7c047ffdf600aff44f9430ec02ff9056b5a25a99))
+
+
+### 🔧 Manutenção
+
+* add @ alias to module name mapper in jest configs ([7731a68](https://github.com/PabloFerrari027/the-shortener-02/commit/7731a689c8f48b5f2732fb94a08a09aebd2cef24))
+* configure environment and Docker setup ([2c51d8c](https://github.com/PabloFerrari027/the-shortener-02/commit/2c51d8c66817d779efba09db599369275e4647cf))
+* update app module and environment ([7a31279](https://github.com/PabloFerrari027/the-shortener-02/commit/7a312799cd00f644fbf62d1b353d822ef7c89b73))
+
+
+### ✨ Novidades
+
+* add auth controller and guard ([991cf4f](https://github.com/PabloFerrari027/the-shortener-02/commit/991cf4fb51b9e7b56be61bab41e80e3ca7776e43))
+* add Auth domain layer ([6b4cafc](https://github.com/PabloFerrari027/the-shortener-02/commit/6b4cafc166620326309d427b40c8c84e76abb8ce))
+* add auth event and queue handlers ([6921ad3](https://github.com/PabloFerrari027/the-shortener-02/commit/6921ad34da7e37c509a8b1346f5a2432859b6aee))
+* add auth module ([2b8b606](https://github.com/PabloFerrari027/the-shortener-02/commit/2b8b6069172beadf2f06fec2b500399432cbc6f3))
+* add auth repositories implementation ([53e989a](https://github.com/PabloFerrari027/the-shortener-02/commit/53e989a93c3ef572c4db12b984ca8ea8475dbb18))
+* add auth services ([2a285ef](https://github.com/PabloFerrari027/the-shortener-02/commit/2a285ef8003b98bb91b5d2a33f2298a6e62bf3b6))
+* add authentication domain error classes ([4e38872](https://github.com/PabloFerrari027/the-shortener-02/commit/4e388721dfaf70df7c7979048d0555d69d72a132))
+* add core ports and adapters ([3bb4beb](https://github.com/PabloFerrari027/the-shortener-02/commit/3bb4beb22e096bc931fa04c4c39f0fb99806b83c))
+* add database migrations for auth ([77cbccb](https://github.com/PabloFerrari027/the-shortener-02/commit/77cbccbd1783dee65f80c00f7bc41db8e8396d6e))
+* add domain events infrastructure ([39e8e8c](https://github.com/PabloFerrari027/the-shortener-02/commit/39e8e8cb30dccb0ecbe52b3479a530b59b0c4baa))
+* add infrastructure managers ([2e5f093](https://github.com/PabloFerrari027/the-shortener-02/commit/2e5f093e44ce7bc9ef7b8753654f1648907c0dd3))
+* add queue worker application ([f38e2ee](https://github.com/PabloFerrari027/the-shortener-02/commit/f38e2ee0588aa34ba6bdba6f5bc9597ec2e32de4))
+* add queue worker, authentication, and development tooling ([5ad118f](https://github.com/PabloFerrari027/the-shortener-02/commit/5ad118fab2fe6114137c80fad59341375dfd1926))
+* add User domain layer ([804d9b1](https://github.com/PabloFerrari027/the-shortener-02/commit/804d9b14ac8b8362987abe0e38c019355adef6fb))
+* add users repository implementation ([028959d](https://github.com/PabloFerrari027/the-shortener-02/commit/028959d7e5c998e2179bb0e8f8af858096b0af37))
+* reate hasher port interface ([ee2e823](https://github.com/PabloFerrari027/the-shortener-02/commit/ee2e823323e9bb67c870dde1a06eb1dc4b0c6a22))
+
+
+### ♻️ Refatoração
+
+* integrate domain events in short-url ([3a322d4](https://github.com/PabloFerrari027/the-shortener-02/commit/3a322d4722e678058b9417775fe84f070e541894))
+* remove eslint disable comment to top of file ([2aadfc2](https://github.com/PabloFerrari027/the-shortener-02/commit/2aadfc22dd4b9365a665a70443ce8259fef1f36c))
+* remove pg-short-url-repository implementation` ([9fc7eea](https://github.com/PabloFerrari027/the-shortener-02/commit/9fc7eea29244d34eb27ae800b9bdb58b0b5751ec))
+* rename pool parameter to pg in migration ([8c3536b](https://github.com/PabloFerrari027/the-shortener-02/commit/8c3536bc30b8d2daa27721fff779c2db119c7aef))
+
 ## [1.0.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v0.3.0...v1.0.0) (2025-11-28)
 
 

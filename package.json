@@ -1,6 +1,6 @@
 {
   "name": "the-shortener-02",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "author": "",
   "private": true,
@@ -11,6 +11,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
+    "start:worker": "nest start --entryFile queue-worker",
+    "start:worker:dev": "nest start --watch --entryFile queue-worker",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -30,7 +32,8 @@
     "docker:compose:test": "docker compose --env-file .env.test.local --project-name the-shortener-test -f .docker/docker-compose.test.yml up -d",
     "docker:compose": "npm run docker:compose:prod && npm run docker:compose:test",
     "migration:run": "tsx scripts/migrate.ts",
-    "migration:rollback": "tsx scripts/migrate.ts rollback"
+    "migration:rollback": "tsx scripts/migrate.ts rollback",
+    "seed": "tsx src/shared/infra/database/pg/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -38,10 +41,13 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.3",
+    "bcrypt": "^6.0.0",
+    "bull": "^4.16.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -55,6 +61,7 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.19.1",
     "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.2",
@@ -93,6 +100,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
       "^src/(.*)$": "<rootDir>/src/$1"
     },
     "roots": [

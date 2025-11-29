@@ -12,6 +12,7 @@ const config: JestConfigWithTsJest = {
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
     '^src/(.*)$': '<rootDir>/src/$1',
   },
   roots: ['<rootDir>/src', '<rootDir>/test'],

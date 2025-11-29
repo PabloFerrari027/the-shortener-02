@@ -2,6 +2,7 @@ import type { ShortUrlRepository } from '../../domain/repositories/short-url.rep
 import { Inject, Injectable } from '@nestjs/common';
 import { ShortUrl } from '../../domain/entities/short-url.entity';
 import { ShortUrlNotFoundError } from '../../domain/errors/short-url-not-found.error';
+import { Bus } from '@/shared/domain-events/bus';
 
 type Input = { hash: string };
 type Output = { shortUrl: ShortUrl };
@@ -20,6 +21,7 @@ export class HandleShortUrlService {
 
     shortUrl.incrementClickCount();
     await this.shortUrlRepository.update(shortUrl);
+    await Bus.dispatch(shortUrl.pullEvents());
 
     return { shortUrl };
   }

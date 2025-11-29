@@ -103,7 +103,6 @@ describe('ShortUrl', () => {
     it('should update url and updatedAt', () => {
       const oldUpdatedAt = shortUrl.updatedAt;
 
-      // Pequeno delay para garantir que a data mude
       jest.useFakeTimers();
       jest.advanceTimersByTime(1000);
 

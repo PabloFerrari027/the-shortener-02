@@ -4,6 +4,11 @@ import {
 } from '../../../../shared/types/json-format.type';
 import { InvalidShortUrlFieldError } from '../errors/invalid-short-url-field.error';
 import { InvalidRangeValueError } from '../errors/invalid-range-value.error';
+import { BaseEvent } from '@/shared/common/base-event';
+import { ShortUrlChangedEvent } from '../events/short-url-changed.event';
+import { ShortUrlClickedEvent } from '../events/short-url-clicked.event';
+import { ShortUrlRemovedEvent } from '../events/short-url-removed.event';
+import { ShortUrlCreatedEvent } from '../events/short-url-created.event';
 
 export interface ShortUrlProps {
   id: string;
@@ -37,9 +42,22 @@ export type ShortUrlJSON<F extends JSONFormat> =
 
 export class ShortUrl {
   private props: ShortUrlProps;
+  private events: Array<BaseEvent<unknown>>;
 
-  protected constructor(props: ShortUrlProps) {
+  protected constructor(
+    props: ShortUrlProps,
+    events?: Array<BaseEvent<unknown>>,
+  ) {
+    if (!ShortUrl.isValidUrl(props.url)) {
+      throw new InvalidShortUrlFieldError('url');
+    }
+
+    if (!ShortUrl.isValidHash(props.hash)) {
+      throw new InvalidShortUrlFieldError('hash');
+    }
+
     this.props = props;
+    this.events = events ?? [];
   }
 
   get id(): string {
@@ -90,13 +108,26 @@ export class ShortUrl {
     if (!ShortUrl.isValidUrl(value)) {
       throw new InvalidShortUrlFieldError('url');
     }
+
+    const event = new ShortUrlChangedEvent({
+      id: this.id,
+      to: value,
+      from: this.url,
+      occurredOn: new Date(),
+    });
     this.props.url = value;
     this.touch();
+    this.events.push(event);
   }
 
   incrementClickCount(): void {
     this.props.clickCount += 1;
     this.touch();
+    const event = new ShortUrlClickedEvent({
+      id: this.id,
+      occurredOn: new Date(),
+    });
+    this.events.push(event);
   }
 
   static generateHash(num: number): string {
@@ -117,7 +148,7 @@ export class ShortUrl {
     return result;
   }
 
-  private static generateId(): string {
+  static generateId(): string {
     return crypto.randomUUID();
   }
 
@@ -191,20 +222,32 @@ export class ShortUrl {
   static create(
     props: Omit<ShortUrlProps, 'id' | 'clickCount' | 'createdAt' | 'updatedAt'>,
   ): ShortUrl {
-    if (!this.isValidUrl(props.url)) {
-      throw new InvalidShortUrlFieldError('url');
-    }
+    const id = this.generateId();
+    const event = new ShortUrlCreatedEvent({ id, occurredOn: new Date() });
 
-    if (!this.isValidHash(props.hash)) {
-      throw new InvalidShortUrlFieldError('hash');
-    }
+    return new ShortUrl(
+      {
+        ...props,
+        id,
+        clickCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      [event],
+    );
+  }
 
-    return new ShortUrl({
-      ...props,
-      id: this.generateId(),
-      clickCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  remove() {
+    const event = new ShortUrlRemovedEvent({
+      ...this.toJSON('SNAKE_CASE'),
+      occurredOn: new Date(),
     });
+    this.events.push(event);
+  }
+
+  pullEvents(): Array<BaseEvent<unknown>> {
+    const events = this.events;
+    this.events = [];
+    return events;
   }
 }

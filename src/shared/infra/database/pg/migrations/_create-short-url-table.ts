@@ -2,8 +2,8 @@ import { Pool } from 'pg';
 import { Migration } from './migration.interface';
 
 export class CreateShortUrlTable implements Migration {
-  async up(pool: Pool): Promise<void> {
-    await pool.query(`
+  async up(pg: Pool): Promise<void> {
+    await pg.query(`
       CREATE TABLE IF NOT EXISTS short_urls (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         hash VARCHAR(50) UNIQUE NOT NULL,
@@ -41,8 +41,8 @@ export class CreateShortUrlTable implements Migration {
     `);
   }
 
-  async down(pool: Pool): Promise<void> {
-    await pool.query(`
+  async down(pg: Pool): Promise<void> {
+    await pg.query(`
       DROP TRIGGER IF EXISTS update_short_urls_updated_at ON short_urls;
       
       DROP FUNCTION IF EXISTS update_updated_at_column();
