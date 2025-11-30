@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "setup": "node scripts/setup.js",
+    "setup": "node scripts/setup.mjs",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "npm run build && npm run start:both",
@@ -38,6 +38,7 @@
     "@nestjs/swagger": "^11.2.3",
     "bcrypt": "^6.0.0",
     "bull": "^4.16.5",
+    "bullmq": "^5.65.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "concurrently": "^9.2.1",
