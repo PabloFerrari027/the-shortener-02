@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 export enum Language {
-  'PT-BR' = 'pt-BR',
+  'PT-BR' = 'PT-BR',
 }
 
 interface Output {

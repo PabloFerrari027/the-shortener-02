@@ -13,7 +13,7 @@ import { Language } from 'src/modules/auth/templates/verification-code.template'
 
 jest.mock('@/shared/env', () => ({
   Env: {
-    TEMPLATE_LANGUAGE: 'pt-BR',
+    TEMPLATE_LANGUAGE: 'PT-BR',
   },
 }));
 
@@ -57,6 +57,7 @@ describe('SendCodeValidationHandler', () => {
       update: jest.fn(),
       findById: jest.fn(),
       findByEmail: jest.fn(),
+      list: jest.fn(),
       delete: jest.fn(),
     } as jest.Mocked<UsersRepository>;
 
@@ -204,7 +205,7 @@ describe('SendCodeValidationHandler', () => {
 
       expect(mockVerificationCodeTemplate.generate).toHaveBeenCalledWith({
         code: mockCodeValidationEntity.value,
-        language: 'pt-BR',
+        language: 'PT-BR',
         userName: mockUser.name.value,
       });
     });
