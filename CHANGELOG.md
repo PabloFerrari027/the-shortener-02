@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.1.1](https://github.com/PabloFerrari027/the-shortener-02/compare/v5.0.0...v5.1.1) (2025-11-30)
+
+
+### 📚 Documentação
+
+* add detailed comments and SMTP configuration to environment variables ([efd9d74](https://github.com/PabloFerrari027/the-shortener-02/commit/efd9d74a0217e1aaaeadd01294e38925779d86e4))
+
+
+### ♻️ Refatoração
+
+* consolidate utility functions and convert setup to plain ([10066b3](https://github.com/PabloFerrari027/the-shortener-02/commit/10066b3c71eecdab8da405cd177a5afc70eeb6d0))
+* improve hash generation algorithm with offset for better distribution ([e79e5e8](https://github.com/PabloFerrari027/the-shortener-02/commit/e79e5e83d21792e9f17ed3fb49e9f4aedd8f3f66))
+* remove unused in-memory queue adapter ([821014e](https://github.com/PabloFerrari027/the-shortener-02/commit/821014e0b42c592d2221acc7271401d97d6904bd))
+
+
+### 🐛 Correções
+
+* correct language enum value format to uppercase ([21fc83f](https://github.com/PabloFerrari027/the-shortener-02/commit/21fc83f7b41c2d5e2f114bade48afc21b21a0317))
+
+
+### 💄 Estilo
+
+* remove Portuguese comments from test files ([002083f](https://github.com/PabloFerrari027/the-shortener-02/commit/002083f222c54fbc2295e501d923bc67cbe7bcbc))
+
+
+### ✨ Novidades
+
+* add nodemailer integration for email notifications ([3aef5fa](https://github.com/PabloFerrari027/the-shortener-02/commit/3aef5fa1b4a23dd7657937ef8e6f48f0b8f014c8))
+* add nodemailer support and remove test environment configuration ([b49fc0d](https://github.com/PabloFerrari027/the-shortener-02/commit/b49fc0da175bc071f1d507f3e3dfa2b4901d5646))
+
+
+### 🔧 Manutenção
+
+* **release:** 5.1.0 ([23c6478](https://github.com/PabloFerrari027/the-shortener-02/commit/23c647875592689b99154190319414e808dc6b0d))
+* remove e2e test configuration and simplify test scripts ([0957f20](https://github.com/PabloFerrari027/the-shortener-02/commit/0957f20ba59eb66c9964b8e5e547288fab109e06))
+* remove test environment docker compose configuration ([a2dc0af](https://github.com/PabloFerrari027/the-shortener-02/commit/a2dc0af46f1932738671c9fb7b603358342d0ab5))
+
 ## [5.1.0](https://github.com/PabloFerrari027/the-shortener-02/compare/v5.0.0...v5.1.0) (2025-11-30)
 
 
