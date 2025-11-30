@@ -2,11 +2,12 @@ import { BaseHandler } from '@/shared/common/base-handler';
 import { Env } from '@/shared/env';
 import { Queue, QueuePort } from '@/shared/ports/queue.port';
 import { Injectable } from '@nestjs/common';
-import Bull from 'bull';
+import { Queue as BullMQQueue, Worker } from 'bullmq';
 
 @Injectable()
 class CustomBullQueue extends Queue {
-  private queue: Bull.Queue;
+  private queue: BullMQQueue;
+  private worker: Worker | null = null;
   private handlers: BaseHandler[];
   private _key: string;
 
@@ -14,8 +15,18 @@ class CustomBullQueue extends Queue {
     super();
     this._key = key;
     this.handlers = [];
-    this.queue = new Bull(key, Env.REDIS_URL, {
-      defaultJobOptions: { removeOnComplete: true, removeOnFail: false },
+
+    this.queue = new BullMQQueue(key, {
+      connection: {
+        host: Env.REDIS_HOST,
+        port: Env.REDIS_PORT,
+        password: Env.REDIS_PASS,
+        username: Env.REDIS_USERNAME,
+      },
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
     });
   }
 
@@ -24,7 +35,7 @@ class CustomBullQueue extends Queue {
   }
 
   async publish(data: any): Promise<void> {
-    await this.queue.add(data);
+    await this.queue.add(this._key, data);
   }
 
   subscribe(handler: BaseHandler): void {
@@ -32,16 +43,28 @@ class CustomBullQueue extends Queue {
   }
 
   async process(): Promise<void> {
-    await this.queue.process(1, async ({ data }, done) => {
-      try {
+    this.worker = new Worker(
+      this.key,
+      async (job) => {
         for (const handler of this.handlers) {
-          await handler.execute(data);
+          await handler.execute(job.data);
         }
-        done();
-      } catch (error) {
-        done(error as Error);
-      }
-    });
+      },
+      {
+        connection: {
+          host: Env.REDIS_HOST,
+          port: Env.REDIS_PORT,
+          password: Env.REDIS_PASS,
+          username: Env.REDIS_USERNAME,
+        },
+        concurrency: 1,
+      },
+    );
+  }
+
+  async close(): Promise<void> {
+    if (this.worker) await this.worker.close();
+    await this.queue.close();
   }
 }
 
