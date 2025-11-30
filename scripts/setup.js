@@ -1,9 +1,16 @@
 import { execSync } from 'child_process';
 import { copyFileSync, existsSync } from 'fs';
-import { colors } from './colors';
-import { log } from './log';
 
-function exec(command: string, description: string) {
+const colors = {
+  reset: '\x1b[0m',
+  green: '\x1b[32m',
+  blue: '\x1b[34m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  red: '\x1b[31m',
+};
+
+function exec(command, description) {
   try {
     log(`\n${description}`, colors.blue);
     execSync(command, { stdio: 'inherit' });
@@ -14,15 +21,15 @@ function exec(command: string, description: string) {
   }
 }
 
-function sleep(ms: number) {
+function sleep(ms) {
   execSync(`node -e "setTimeout(() => {}, ${ms})"`, { stdio: 'ignore' });
 }
 
 function waitForPostgres(
-  composeFile: string,
-  projectName: string,
-  maxRetries: number = 30,
-  delayMs: number = 2000,
+  composeFile,
+  projectName,
+  maxRetries = 30,
+  delayMs = 2000,
 ) {
   log(
     `\n➤ Waiting for PostgreSQL (${projectName}) to be ready...`,
@@ -57,7 +64,7 @@ function waitForPostgres(
   return false;
 }
 
-function copyEnvFiles() {
+function copyEnvFile() {
   try {
     log('\n➤ Creating environment files...', colors.blue);
 
@@ -68,13 +75,6 @@ function copyEnvFiles() {
       log('  ⚠  .env already exists, skipping...', colors.yellow);
     }
 
-    if (!existsSync('.env.test.local')) {
-      copyFileSync('.env.example', '.env.test.local');
-      log('  ✓ Created .env.test.local', colors.green);
-    } else {
-      log('  ⚠  .env.test.local already exists, skipping...', colors.yellow);
-    }
-
     return true;
   } catch (error) {
     log(`❌ Error creating environment files: ${error}`, colors.red);
@@ -82,9 +82,13 @@ function copyEnvFiles() {
   }
 }
 
+function log(message, color) {
+  console.log(`${color}${message}${colors.reset}`);
+}
+
 log('🚀 Starting project setup...', colors.cyan);
 
-copyEnvFiles();
+copyEnvFile();
 
 exec('npm install', '➤ Installing dependencies...');
 
@@ -100,12 +104,7 @@ const prodReady = waitForPostgres(
   'the-shortener-prod',
 );
 
-const testReady = waitForPostgres(
-  '.docker/docker-compose.test.yml',
-  'the-shortener-test',
-);
-
-if (!prodReady || !testReady) {
+if (!prodReady) {
   log('\n❌ Setup failed: PostgreSQL is not ready', colors.red);
   process.exit(1);
 }
