@@ -73,7 +73,7 @@ SMTP_PASS=sua_senha_app_smtp          # Senha do email ou senha de aplicativo
 - **Node.js >= 18** (recomendado LTS).
 - **npm >= 9**, **yarn** ou **pnpm**.
 - **PostgreSQL** em execução.
-- **Redis** (necessário para filas; opcional no ambiente de desenvolvimento).
+- **Redis** necessário para filas.
 
 ---
 
